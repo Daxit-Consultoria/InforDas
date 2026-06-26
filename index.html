@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jornada da Informática Básica — Prof. Anderson Andrade</title>
+  <meta name="description" content="Aprenda informática básica de forma gamificada e interativa. 8 módulos completos com simulações práticas, quizzes e certificado." />
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Design System -->
+  <link rel="stylesheet" href="css/main.css" />
+
+  <style>
+    /* ===== LANDING PAGE STYLES ===== */
+    body { overflow-x: hidden; }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      background: var(--gradient-hero);
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 80px 24px;
+    }
+
+    /* Bolhas decorativas de fundo */
+    .hero-bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      animation: float 6s ease-in-out infinite;
+    }
+    .hero-bubble:nth-child(1) { width:400px; height:400px; top:-100px; right:-80px; animation-delay:0s; }
+    .hero-bubble:nth-child(2) { width:250px; height:250px; bottom:-60px; left:-60px; animation-delay:2s; }
+    .hero-bubble:nth-child(3) { width:180px; height:180px; top:30%; left:15%; animation-delay:4s; }
+    .hero-bubble:nth-child(4) { width:120px; height:120px; top:10%; right:25%; animation-delay:1s; }
+
+    /* Partículas flutuantes */
+    .particle {
+      position: absolute;
+      font-size: 24px;
+      opacity: 0.2;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .hero-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    .hero-content { color: white; }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 8px 18px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 5vw, 60px);
+      font-weight: 900;
+      font-family: var(--font-heading);
+      color: white;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(90deg, #FCD34D, #FCA5A5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.7;
+      margin-bottom: 36px;
+      max-width: 480px;
+    }
+
+    /* Formulário de Cadastro */
+    .signup-form {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      max-width: 420px;
+    }
+
+    .signup-form h3 {
+      color: white;
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .signup-form p {
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .form-input-group {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .form-input-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255,255,255,0.5);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 14px 16px 14px 46px;
+      border-radius: var(--radius-full);
+      border: 2px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.15);
+      color: white;
+      font-size: 16px;
+      font-family: var(--font-body);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-input::placeholder { color: rgba(255,255,255,0.5); }
+
+    .form-input:focus {
+      border-color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.2);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.1);
+    }
+
+    .btn-start {
+      width: 100%;
+      padding: 16px;
+      background: white;
+      color: var(--primary);
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: 17px;
+      font-weight: 800;
+      font-family: var(--font-heading);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    }
+
+    .btn-start:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    }
+
+    .btn-start:active { transform: translateY(0); }
+
+    /* Estatísticas rápidas */
+    .hero-stats {
+      display: flex;
+      gap: 24px;
+      margin-top: 28px;
+    }
+
+    .hero-stat {
+      text-align: center;
+    }
+
+    .hero-stat-value {
+      font-size: 26px;
+      font-weight: 900;
+      font-family: var(--font-heading);
+      color: white;
+    }
+
+    .hero-stat-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
+      margin-top: 2px;
+    }
+
+    .hero-stat-divider {
+      width: 1px;
+      background: rgba(255,255,255,0.2);
+      align-self: stretch;
+    }
+
+    /* Ilustração da Hero */
+    .hero-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-illustration {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .hero-laptop {
+      font-size: 160px;
+      line-height: 1;
+      text-align: center;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .floating-badge {
+      position: absolute;
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      box-shadow: var(--shadow-xl);
+      font-weight: 700;
+      font-family: var(--font-heading);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      white-space: nowrap;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .fb-1 { top: 10%; right: -5%; color: var(--warning); animation-delay: 0s; }
+    .fb-2 { bottom: 25%; left: -10%; color: var(--success); animation-delay: 1.5s; }
+    .fb-3 { top: 45%; right: -15%; color: var(--primary); animation-delay: 3s; }
+
+    /* ===== SEÇÃO DE FEATURES ===== */
+    .features-section {
+      padding: 100px 24px;
+      background: white;
+    }
+
+    .features-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-ultra-light);
+      color: var(--primary);
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .section-heading {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 900;
+      font-family: var(--font-heading);
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      max-width: 600px;
+    }
+
+    .section-desc {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 560px;
+      margin-bottom: 56px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .feature-card:hover {
+      background: white;
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-5px);
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: var(--font-heading);
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ===== MÓDULOS SECTION ===== */
+    .modules-section {
+      padding: 100px 24px;
+      background: var(--gradient-bg);
+    }
+
+    .modules-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .modules-showcase {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .module-showcase-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-light);
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .module-showcase-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-4px);
+    }
+
+    .module-showcase-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    .module-showcase-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .module-showcase-title {
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--font-heading);
+      color: var(--text-primary);
+    }
+
+    /* ===== COMO FUNCIONA ===== */
+    .howto-section {
+      padding: 100px 24px;
+      background: white;
+    }
+
+    .howto-container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .howto-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      position: relative;
+      margin-top: 56px;
+    }
+
+    .howto-steps::before {
+      content: '';
+      position: absolute;
+      top: 32px;
+      left: calc(12.5% + 16px);
+      right: calc(12.5% + 16px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary-light), var(--secondary-light));
+    }
+
+    .howto-step {
+      text-align: center;
+      position: relative;
+    }
+
+    .howto-step-num {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 900;
+      font-family: var(--font-heading);
+      margin: 0 auto 16px;
+      box-shadow: var(--shadow-primary);
+      position: relative;
+      z-index: 1;
+    }
+
+    .howto-step-title {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--font-heading);
+      margin-bottom: 8px;
+    }
+
+    .howto-step-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ===== GAMIFICAÇÃO SECTION ===== */
+    .gamification-section {
+      padding: 100px 24px;
+      background: var(--gradient-primary);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gamification-section::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -20%;
+      width: 600px; height: 600px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+
+    .gamification-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .medals-showcase {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    .medal-showcase {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      text-align: center;
+      min-width: 130px;
+      transition: var(--transition);
+    }
+
+    .medal-showcase:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-4px);
+    }
+
+    .medal-showcase-icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    .medal-showcase-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+    }
+
+    /* ===== CTA SECTION ===== */
+    .cta-section {
+      padding: 100px 24px;
+      background: var(--bg);
+      text-align: center;
+    }
+
+    .cta-container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta-emoji { font-size: 80px; margin-bottom: 24px; animation: bounce 2s infinite; }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      background: var(--text-primary);
+      color: rgba(255,255,255,0.6);
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-size: 24px;
+      font-weight: 900;
+      font-family: var(--font-heading);
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .footer p { font-size: 14px; }
+
+    /* ===== RESPONSIVO ===== */
+    @media (max-width: 900px) {
+      .hero-container { grid-template-columns: 1fr; text-align: center; }
+      .hero-subtitle { margin-left: auto; margin-right: auto; }
+      .signup-form { max-width: 100%; }
+      .hero-visual { display: none; }
+      .hero-stats { justify-content: center; }
+      .modules-showcase { grid-template-columns: repeat(2, 1fr); }
+      .howto-steps { grid-template-columns: repeat(2, 1fr); }
+      .howto-steps::before { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .modules-showcase { grid-template-columns: repeat(2, 1fr); }
+      .howto-steps { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <!-- Bolhas decorativas -->
+    <div class="hero-bubble"></div>
+    <div class="hero-bubble"></div>
+    <div class="hero-bubble"></div>
+    <div class="hero-bubble"></div>
+
+    <!-- Partículas decorativas -->
+    <div class="particle" style="top:15%; left:5%; animation-delay:0s;">💻</div>
+    <div class="particle" style="top:70%; right:8%; animation-delay:2s;">⌨️</div>
+    <div class="particle" style="top:40%; right:30%; animation-delay:4s;">🖱️</div>
+    <div class="particle" style="bottom:20%; left:30%; animation-delay:1s;">📁</div>
+
+    <div class="hero-container">
+      <!-- Conteúdo da Hero -->
+      <div class="hero-content animate-fadeInUp">
+        <div class="hero-eyebrow">
+          🎓 Plataforma Educacional Gamificada
+        </div>
+
+        <h1 class="hero-title">
+          Aprenda<br>
+          <span>Informática</span><br>
+          do Zero!
+        </h1>
+
+        <p class="hero-subtitle">
+          Uma jornada gamificada para aprender informática básica 
+          de forma divertida, interativa e prática.
+          Do computador ao certificado em 8 módulos!
+        </p>
+
+        <!-- Stats rápidas -->
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-value">8</div>
+            <div class="hero-stat-label">Módulos</div>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <div class="hero-stat-value">40h</div>
+            <div class="hero-stat-label">Carga Horária</div>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <div class="hero-stat-value">100%</div>
+            <div class="hero-stat-label">Gratuito</div>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <div class="hero-stat-value">📜</div>
+            <div class="hero-stat-label">Certificado</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário / Ilustração -->
+      <div class="hero-visual">
+        <!-- Formulário de Cadastro -->
+        <div class="signup-form animate-fadeInUp" style="animation-delay:0.2s; opacity:0;">
+          <h3>🚀 Comece sua Jornada!</h3>
+          <p>Digite seu nome para iniciar o aprendizado.</p>
+
+          <form id="signup-form" onsubmit="handleSignup(event)">
+            <div class="form-input-group">
+              <span class="form-input-icon">👤</span>
+              <input
+                type="text"
+                id="student-name"
+                class="form-input"
+                placeholder="Digite seu nome completo"
+                maxlength="60"
+                autocomplete="off"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn-start" id="start-btn">
+              <span>🎯</span>
+              <span>Iniciar Jornada!</span>
+            </button>
+          </form>
+
+          <!-- Divisor -->
+          <div style="text-align:center; margin:20px 0; color:rgba(255,255,255,0.4); font-size:13px;">
+            ─── ou ───
+          </div>
+
+          <!-- Continuar com progresso existente -->
+          <div id="continue-section" style="display:none; text-align:center;">
+            <p style="color:rgba(255,255,255,0.8); font-size:14px; margin-bottom:12px;">
+              Você tem progresso salvo como:<br>
+              <strong id="saved-name" style="color:white;"></strong>
+            </p>
+            <button class="btn btn-success" style="width:100%; border-radius:var(--radius-full); padding:14px;" onclick="continueLearning()">
+              ▶️ Continuar de Onde Parei
+            </button>
+          </div>
+
+          <!-- Badge de garantia -->
+          <div style="display:flex; align-items:center; gap:8px; margin-top:16px; padding:10px 14px; background:rgba(255,255,255,0.08); border-radius:var(--radius); font-size:13px; color:rgba(255,255,255,0.75);">
+            🔒 Seu progresso é salvo automaticamente
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FEATURES ===== -->
+  <section class="features-section">
+    <div class="features-container">
+      <div class="section-tag">✨ Por que você vai amar</div>
+      <h2 class="section-heading">Aprendizado moderno e eficaz</h2>
+      <p class="section-desc">
+        Nossa plataforma combina o melhor das metodologias educacionais com gamificação 
+        para tornar o aprendizado envolvente e eficiente.
+      </p>
+
+      <div class="features-grid stagger">
+        <div class="feature-card animate-fadeInUp">
+          <div class="feature-icon" style="background:var(--primary-ultra-light);">🎮</div>
+          <div class="feature-title">Totalmente Gamificado</div>
+          <div class="feature-desc">XP, medalhas, rankings e níveis para manter você motivado a cada passo da jornada.</div>
+        </div>
+
+        <div class="feature-card animate-fadeInUp">
+          <div class="feature-icon" style="background:var(--success-light);">🎯</div>
+          <div class="feature-title">Simulações Reais</div>
+          <div class="feature-desc">Pratique em simulações de teclado, explorador de arquivos, navegador e Windows sem riscos.</div>
+        </div>
+
+        <div class="feature-card animate-fadeInUp">
+          <div class="feature-icon" style="background:var(--warning-light);">💡</div>
+          <div class="feature-title">Feedback Inteligente</div>
+          <div class="feature-desc">Quando você erra, explicamos o quê, por quê e como corrigir. Aprendizado real!</div>
+        </div>
+
+        <div class="feature-card animate-fadeInUp">
+          <div class="feature-icon" style="background:var(--danger-light);">📱</div>
+          <div class="feature-title">Funciona em Qualquer Lugar</div>
+          <div class="feature-desc">Responsivo para celular, tablet e computador. Aprenda onde e quando quiser!</div>
+        </div>
+
+        <div class="feature-card animate-fadeInUp">
+          <div class="feature-icon" style="background:#F5F3FF;">📜</div>
+          <div class="feature-title">Certificado Digital</div>
+          <div class="feature-desc">Ao concluir todos os módulos, gere seu certificado em PDF com QR Code de validação.</div>
+        </div>
+
+        <div class="feature-card animate-fadeInUp">
+          <div class="feature-icon" style="background:#F0FDFA;">❓</div>
+          <div class="feature-title">Sistema de Ajuda</div>
+          <div class="feature-desc">Botão "Como Fazer?" em cada tela com tutoriais animados e passo a passo visual.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MÓDULOS ===== -->
+  <section class="modules-section">
+    <div class="modules-container">
+      <div style="text-align:center; margin-bottom:16px;">
+        <div class="section-tag">🗺️ Conteúdo do Curso</div>
+      </div>
+      <h2 class="section-heading" style="text-align:center; margin:0 auto 12px;">8 Módulos Completos</h2>
+      <p class="section-desc" style="text-align:center; margin:0 auto 48px;">
+        Do básico ao avançado, cada módulo tem teoria, demonstração, prática e quiz.
+      </p>
+
+      <div class="modules-showcase">
+        <div class="module-showcase-card">
+          <div class="module-showcase-icon">🖥️</div>
+          <div class="module-showcase-num">Módulo 1</div>
+          <div class="module-showcase-title">Conhecendo o Computador</div>
+        </div>
+        <div class="module-showcase-card">
+          <div class="module-showcase-icon">⌨️</div>
+          <div class="module-showcase-num">Módulo 2</div>
+          <div class="module-showcase-title">Conhecendo o Teclado</div>
+        </div>
+        <div class="module-showcase-card">
+          <div class="module-showcase-icon">⚡</div>
+          <div class="module-showcase-num">Módulo 3</div>
+          <div class="module-showcase-title">Atalhos de Teclado</div>
+        </div>
+        <div class="module-showcase-card">
+          <div class="module-showcase-icon">📁</div>
+          <div class="module-showcase-num">Módulo 4</div>
+          <div class="module-showcase-title">Explorador de Arquivos</div>
+        </div>
+        <div class="module-showcase-card">
+          <div class="module-showcase-icon">🌐</div>
+          <div class="module-showcase-num">Módulo 5</div>
+          <div class="module-showcase-title">Internet</div>
+        </div>
+        <div class="module-showcase-card">
+          <div class="module-showcase-icon">🛡️</div>
+          <div class="module-showcase-num">Módulo 6</div>
+          <div class="module-showcase-title">Segurança Digital</div>
+        </div>
+        <div class="module-showcase-card">
+          <div class="module-showcase-icon">🪟</div>
+          <div class="module-showcase-num">Módulo 7</div>
+          <div class="module-showcase-title">Windows Básico</div>
+        </div>
+        <div class="module-showcase-card">
+          <div class="module-showcase-icon">✍️</div>
+          <div class="module-showcase-num">Módulo 8</div>
+          <div class="module-showcase-title">LibreOffice Writer</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== COMO FUNCIONA ===== -->
+  <section class="howto-section">
+    <div class="howto-container">
+      <div style="text-align:center;">
+        <div class="section-tag">⚙️ Como funciona</div>
+        <h2 class="section-heading" style="text-align:center; margin:12px auto 0;">Simples assim</h2>
+      </div>
+
+      <div class="howto-steps stagger">
+        <div class="howto-step animate-fadeInUp">
+          <div class="howto-step-num">1</div>
+          <div class="howto-step-title">Cadastre seu Nome</div>
+          <div class="howto-step-desc">Informe seu nome para começar. Sem senha, sem cadastro complicado.</div>
+        </div>
+        <div class="howto-step animate-fadeInUp">
+          <div class="howto-step-num">2</div>
+          <div class="howto-step-title">Estude os Módulos</div>
+          <div class="howto-step-desc">Teoria, demonstração, prática e quiz em cada módulo.</div>
+        </div>
+        <div class="howto-step animate-fadeInUp">
+          <div class="howto-step-num">3</div>
+          <div class="howto-step-title">Ganhe XP e Medalhas</div>
+          <div class="howto-step-desc">Suba de nível e conquiste medalhas conforme avança.</div>
+        </div>
+        <div class="howto-step animate-fadeInUp">
+          <div class="howto-step-num">4</div>
+          <div class="howto-step-title">Receba seu Certificado</div>
+          <div class="howto-step-desc">Ao concluir tudo, gere seu certificado PDF com sua conquista!</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== GAMIFICAÇÃO ===== -->
+  <section class="gamification-section">
+    <div class="gamification-container">
+      <div style="text-align:center; margin-bottom:16px;">
+        <div class="section-tag" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.3);">
+          🏆 Sistema de Conquistas
+        </div>
+      </div>
+      <h2 style="font-size:clamp(28px,4vw,40px); font-weight:900; color:white; text-align:center; margin-bottom:12px;">
+        Conquiste Medalhas!
+      </h2>
+      <p style="text-align:center; color:rgba(255,255,255,0.8); font-size:17px; max-width:500px; margin:0 auto 16px;">
+        Cada módulo concluído desbloqueia uma medalha especial.
+      </p>
+
+      <div class="medals-showcase">
+        <div class="medal-showcase">
+          <div class="medal-showcase-icon">👣</div>
+          <div class="medal-showcase-name">Primeiro Passo</div>
+        </div>
+        <div class="medal-showcase">
+          <div class="medal-showcase-icon">⚡</div>
+          <div class="medal-showcase-name">Mestre dos Atalhos</div>
+        </div>
+        <div class="medal-showcase">
+          <div class="medal-showcase-icon">🗂️</div>
+          <div class="medal-showcase-name">Explorador de Arquivos</div>
+        </div>
+        <div class="medal-showcase">
+          <div class="medal-showcase-icon">🛡️</div>
+          <div class="medal-showcase-name">Guardião Digital</div>
+        </div>
+        <div class="medal-showcase">
+          <div class="medal-showcase-icon">🪟</div>
+          <div class="medal-showcase-name">Especialista Windows</div>
+        </div>
+        <div class="medal-showcase">
+          <div class="medal-showcase-icon">✍️</div>
+          <div class="medal-showcase-name">Escritor Pro</div>
+        </div>
+        <div class="medal-showcase">
+          <div class="medal-showcase-icon">🌟</div>
+          <div class="medal-showcase-name">Na Metade do Caminho</div>
+        </div>
+        <div class="medal-showcase">
+          <div class="medal-showcase-icon">🏆</div>
+          <div class="medal-showcase-name">Mestre Completo</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA FINAL ===== -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <div class="cta-emoji">🚀</div>
+      <h2 class="section-heading" style="text-align:center; margin:0 auto 16px; font-size:clamp(28px,4vw,44px);">
+        Pronto para começar?
+      </h2>
+      <p class="section-desc" style="text-align:center; margin:0 auto 36px;">
+        Sua jornada para dominar a informática começa com um único clique.
+        É gratuito, rápido e funciona no seu celular!
+      </p>
+      <button class="btn btn-primary btn-lg" onclick="document.querySelector('.hero').scrollIntoView({behavior:'smooth'})">
+        🎯 Começar Agora — É Grátis!
+      </button>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-logo">🖥️ Jornada da Informática Básica</div>
+    <p>Desenvolvido por Prof. Anderson Andrade • 2026</p>
+    <p style="margin-top:4px; font-size:12px;">Educação de qualidade, acessível a todos.</p>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Script -->
+  <script src="js/app.js"></script>
+  <script>
+    // ===================================================
+    // LÓGICA DA LANDING PAGE
+    // ===================================================
+
+    /**
+     * Inicializa a landing page:
+     * - Verifica se já existe um aluno salvo
+     * - Mostra opção de continuar se houver
+     */
+    function initLandingPage() {
+      const state = App.loadState();
+
+      if (state && state.student?.name) {
+        // Aluno já cadastrado — mostra opção de continuar
+        const savedName = document.getElementById('saved-name');
+        const continueSection = document.getElementById('continue-section');
+
+        if (savedName) savedName.textContent = state.student.name;
+        if (continueSection) continueSection.style.display = 'block';
+      }
+    }
+
+    /**
+     * Processa o cadastro do aluno.
+     * @param {Event} event - Evento de submit do form.
+     */
+    function handleSignup(event) {
+      event.preventDefault();
+
+      const nameInput = document.getElementById('student-name');
+      const name = nameInput.value.trim();
+
+      if (!name || name.length < 2) {
+        App.showToast('error', 'Nome inválido', 'Por favor, digite seu nome completo.');
+        nameInput.focus();
+        return;
+      }
+
+      // Som de clique
+      App.playSound('click');
+
+      // Anima o botão
+      const btn = document.getElementById('start-btn');
+      btn.innerHTML = '<span class="animate-spin">⏳</span> Preparando sua jornada...';
+      btn.disabled = true;
+
+      // Inicializa o estado do aluno
+      App.initStudent(name);
+
+      // Redireciona ao dashboard após breve delay
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 1000);
+    }
+
+    /**
+     * Continua a sessão do aluno existente.
+     */
+    function continueLearning() {
+      App.playSound('click');
+      window.location.href = 'dashboard.html';
+    }
+
+    // Inicializa ao carregar a página
+    document.addEventListener('DOMContentLoaded', initLandingPage);
+  </script>
+</body>
+</html>

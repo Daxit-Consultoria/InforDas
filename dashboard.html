@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Jornada da Informática Básica</title>
+  <meta name="description" content="Seu painel de controle na Jornada da Informática Básica. Acompanhe seu progresso, XP e medalhas." />
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+
+  <!-- Toggle Mobile -->
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Abrir Menu">☰</button>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <div class="dashboard-layout">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🖥️</div>
+        <div class="sidebar-logo-text">
+          Jornada da Informática
+          <small>Prof. Anderson Andrade</small>
+        </div>
+      </div>
+
+      <!-- Perfil do Aluno -->
+      <div class="student-profile">
+        <div class="student-avatar" id="student-avatar">😊</div>
+        <div class="student-name" id="student-name">Aluno</div>
+        <div class="student-badges">
+          <span class="level-badge" id="level-badge">🌱 Iniciante</span>
+        </div>
+
+        <!-- Barra de XP -->
+        <div class="xp-section">
+          <div class="xp-header">
+            <span class="xp-label">Experiência</span>
+            <span class="xp-value" data-xp-display>0</span>
+            <span class="xp-value" style="color:var(--text-muted); font-weight:400;"> XP</span>
+          </div>
+          <div class="xp-bar">
+            <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+          </div>
+          <div class="xp-next" data-xp-next>100 XP para Explorador</div>
+        </div>
+      </div>
+
+      <!-- Navegação -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Menu</div>
+
+        <button class="nav-link active" onclick="showSection('overview')">
+          <div class="nav-link-icon active">🏠</div>
+          Visão Geral
+        </button>
+
+        <button class="nav-link" onclick="showSection('modules')">
+          <div class="nav-link-icon">📚</div>
+          Módulos
+        </button>
+
+        <button class="nav-link" onclick="showSection('medals')">
+          <div class="nav-link-icon">🏅</div>
+          Medalhas
+        </button>
+
+        <button class="nav-link" onclick="showSection('ranking')">
+          <div class="nav-link-icon">🏆</div>
+          Ranking
+        </button>
+
+        <div class="nav-section-title">Módulos</div>
+        <div id="sidebar-modules"></div>
+      </nav>
+
+      <!-- Footer da Sidebar -->
+      <div class="sidebar-footer">
+        <button class="sidebar-exit-btn" onclick="confirmReset()">
+          🔄 Reiniciar Progresso
+        </button>
+        <button class="sidebar-exit-btn" onclick="exitToHome()">
+          🚪 Sair
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+      <!-- Header -->
+      <div class="dashboard-header">
+        <div class="dashboard-header-left">
+          <h1 id="header-greeting">Olá! 👋</h1>
+          <p id="header-subtitle">Continue sua jornada de aprendizado!</p>
+        </div>
+        <div class="dashboard-header-right">
+          <div class="xp-badge">
+            ⭐ <span data-xp-display>0</span> XP
+          </div>
+          <div class="streak-badge" id="streak-badge">
+            🔥 1 dia
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="dashboard-body">
+
+        <!-- ===== VISÃO GERAL ===== -->
+        <section id="section-overview">
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon blue">📚</div>
+              <div>
+                <div class="stat-value" id="stat-modules">0/8</div>
+                <div class="stat-label">Módulos Concluídos</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon yellow">⭐</div>
+              <div>
+                <div class="stat-value" data-xp-display>0</div>
+                <div class="stat-label">XP Total Acumulado</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">🏅</div>
+              <div>
+                <div class="stat-value" id="stat-medals">0</div>
+                <div class="stat-label">Medalhas Conquistadas</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon purple">⏱️</div>
+              <div>
+                <div class="stat-value" id="stat-hours">0h</div>
+                <div class="stat-label">Horas Estudadas</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progresso Geral -->
+          <div class="section-title">
+            <div class="title-icon">📊</div>
+            Progresso Geral
+          </div>
+
+          <div class="card" style="margin-bottom:32px;">
+            <div class="card-body">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                <div>
+                  <div style="font-size:18px; font-weight:800; font-family:var(--font-heading);" id="progress-label">0% Completo</div>
+                  <div style="font-size:14px; color:var(--text-secondary);" id="progress-sublabel">Módulo 1 desbloqueado — Comece agora!</div>
+                </div>
+                <div class="level-badge" data-level-name>🌱 Iniciante</div>
+              </div>
+              <div class="progress-bar-custom" style="height:16px;">
+                <div class="progress-bar-fill" id="overall-progress-bar" style="width:0%;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:13px; color:var(--text-muted);">
+                <span>Início</span>
+                <span>Módulo 4</span>
+                <span>Módulo 8</span>
+                <span>Mestre 🏆</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Última Atividade -->
+          <div class="section-title">
+            <div class="title-icon">⚡</div>
+            Atividade Recente
+          </div>
+          <div class="activity-feed" id="activity-feed">
+            <div style="padding:20px; text-align:center; color:var(--text-muted);">
+              <div style="font-size:40px; margin-bottom:8px;">🎯</div>
+              <div>Nenhuma atividade ainda. Comece estudando!</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== MÓDULOS ===== -->
+        <section id="section-modules" style="display:none;">
+          <div class="section-title">
+            <div class="title-icon">📚</div>
+            Todos os Módulos
+          </div>
+          <div class="modules-grid" id="modules-grid"></div>
+        </section>
+
+        <!-- ===== MEDALHAS ===== -->
+        <section id="section-medals" style="display:none;">
+          <div class="section-title">
+            <div class="title-icon">🏅</div>
+            Suas Medalhas
+          </div>
+
+          <div class="card" style="margin-bottom:24px;">
+            <div class="card-body">
+              <p style="color:var(--text-secondary); margin-bottom:24px;">
+                Conquiste medalhas completando os módulos. Cada conquista representa uma habilidade dominada!
+              </p>
+              <div class="medals-grid" id="medals-grid" style="display:flex; flex-wrap:wrap; gap:20px;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== RANKING ===== -->
+        <section id="section-ranking" style="display:none;">
+          <div class="section-title">
+            <div class="title-icon">🏆</div>
+            Ranking da Turma
+          </div>
+          <div class="ranking-table" id="ranking-table"></div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal de Ajuda / Confirmação -->
+  <div class="modal-custom" id="confirm-modal">
+    <div class="modal-box">
+      <div class="modal-box-header">
+        <h3>⚠️ Reiniciar Progresso</h3>
+        <button class="modal-close" onclick="closeModal('confirm-modal')">✕</button>
+      </div>
+      <div class="modal-box-body">
+        <p style="color:var(--text-secondary);">
+          Tem certeza que deseja reiniciar todo o seu progresso?<br>
+          <strong>Todo o XP, módulos concluídos e medalhas serão perdidos.</strong>
+        </p>
+        <div class="info-box danger" style="margin-top:16px;">
+          <div class="info-box-title">⛔ Esta ação é irreversível!</div>
+          <div class="info-box-body">Seu progresso não poderá ser recuperado após o reset.</div>
+        </div>
+      </div>
+      <div class="modal-box-footer">
+        <button class="btn btn-ghost" onclick="closeModal('confirm-modal')">Cancelar</button>
+        <button class="btn btn-danger" onclick="doReset()">🔄 Sim, Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script src="js/app.js"></script>
+  <script src="js/certificate.js"></script>
+  <script>
+    // ===================================================
+    // DASHBOARD — LÓGICA PRINCIPAL
+    // ===================================================
+
+    // Configuração dos módulos para exibição
+    const MODULES_DISPLAY = [
+      { id:1, icon:'🖥️', title:'Conhecendo o Computador',  desc:'Hardware, Software e Sistema Operacional',       color:'banner-1', file:'modules/module1.html' },
+      { id:2, icon:'⌨️', title:'Conhecendo o Teclado',      desc:'Teclas, funções e simulador virtual',            color:'banner-2', file:'modules/module2.html' },
+      { id:3, icon:'⚡', title:'Atalhos de Teclado',        desc:'Os atalhos mais importantes para ser produtivo', color:'banner-3', file:'modules/module3.html' },
+      { id:4, icon:'📁', title:'Explorador de Arquivos',    desc:'Pastas, arquivos e organização do Windows',      color:'banner-4', file:'modules/module4.html' },
+      { id:5, icon:'🌐', title:'Internet',                  desc:'Navegadores, sites e navegação segura',           color:'banner-5', file:'modules/module5.html' },
+      { id:6, icon:'🛡️', title:'Segurança Digital',        desc:'Senhas, golpes, phishing e proteção online',     color:'banner-6', file:'modules/module6.html' },
+      { id:7, icon:'🪟', title:'Windows Básico',            desc:'Desktop, Barra de Tarefas e Menu Iniciar',       color:'banner-7', file:'modules/module7.html' },
+      { id:8, icon:'✍️', title:'LibreOffice Writer',        desc:'Documentos, formatação e tabelas',               color:'banner-8', file:'modules/module8.html' },
+    ];
+
+    // Avatares por nível
+    const LEVEL_AVATARS = ['🌱', '🔭', '⚙️', '💡', '🏆'];
+
+    // Dados falsos do ranking
+    const RANKING_DATA = [
+      { name: 'Maria Oliveira',   avatar: '👩', modules: 8, xp: 620 },
+      { name: 'João Santos',      avatar: '👨', modules: 7, xp: 510 },
+      { name: 'Ana Costa',        avatar: '👩', modules: 6, xp: 430 },
+      { name: 'Pedro Lima',       avatar: '🧑', modules: 5, xp: 370 },
+      { name: 'Carla Souza',      avatar: '👩', modules: 4, xp: 280 },
+      { name: 'Lucas Ferreira',   avatar: '👦', modules: 3, xp: 200 },
+    ];
+
+    /**
+     * Inicializa o dashboard completo.
+     */
+    function initDashboard() {
+      // Verifica se aluno está cadastrado
+      App.requireStudent();
+
+      const state = App.loadState();
+      if (!state) return;
+
+      // Carrega dados na UI
+      renderStudentProfile(state);
+      renderModulesGrid(state);
+      renderSidebarModules(state);
+      renderMedals(state);
+      renderRanking(state);
+      renderActivityFeed(state);
+      renderStats(state);
+      renderOverallProgress(state);
+    }
+
+    /**
+     * Renderiza o perfil do aluno na sidebar.
+     */
+    function renderStudentProfile(state) {
+      const name = state.student?.name || 'Aluno';
+      const xp = state.totalXP || 0;
+      const levelInfo = App.getLevelInfo(xp);
+      const levelProgress = App.getLevelProgress(xp);
+      const nextLevel = App.LEVELS[levelInfo.index + 1];
+
+      // Nome
+      document.getElementById('student-name').textContent = name;
+      document.getElementById('header-greeting').textContent = `Olá, ${name.split(' ')[0]}! 👋`;
+
+      // Última atividade
+      if (state.lastActivity) {
+        document.getElementById('header-subtitle').textContent =
+          `Última atividade: ${App.formatTimeAgo(state.lastActivity)}`;
+      }
+
+      // Avatar baseado no nível
+      document.getElementById('student-avatar').textContent = LEVEL_AVATARS[levelInfo.index] || '😊';
+
+      // Level badge
+      document.getElementById('level-badge').textContent = `${levelInfo.icon} ${levelInfo.name}`;
+      document.getElementById('level-badge').style.background = '';
+
+      // Barra de XP
+      document.getElementById('xp-bar-fill').style.width = levelProgress + '%';
+
+      // XP text em todos os elementos data-xp-display
+      document.querySelectorAll('[data-xp-display]').forEach(el => {
+        el.textContent = xp.toLocaleString('pt-BR');
+      });
+
+      // XP próximo nível
+      if (nextLevel) {
+        document.querySelectorAll('[data-xp-next]').forEach(el => {
+          el.textContent = `${nextLevel.min - xp} XP para ${nextLevel.name}`;
+        });
+      }
+
+      // Level name em todos os elementos data-level-name
+      document.querySelectorAll('[data-level-name]').forEach(el => {
+        el.textContent = `${levelInfo.icon} ${levelInfo.name}`;
+      });
+    }
+
+    /**
+     * Renderiza a grade de módulos.
+     */
+    function renderModulesGrid(state) {
+      const grid = document.getElementById('modules-grid');
+      grid.innerHTML = '';
+
+      MODULES_DISPLAY.forEach(mod => {
+        const modData = state.modules?.[mod.id] || {};
+        const unlocked = App.isModuleUnlocked(mod.id);
+        const completed = modData.completed || false;
+        const stepsCompleted = Object.values(modData.steps || {}).filter(Boolean).length;
+        const totalSteps = 5;
+        const progressPct = completed ? 100 : Math.round((stepsCompleted / totalSteps) * 100);
+
+        let statusBadge = '';
+        let statusClass = '';
+
+        if (!unlocked) {
+          statusBadge = `<span class="module-status-badge locked">🔒 Bloqueado</span>`;
+          statusClass = 'locked';
+        } else if (completed) {
+          statusBadge = `<span class="module-status-badge completed">✅ Concluído</span>`;
+          statusClass = 'completed';
+        } else if (stepsCompleted > 0) {
+          statusBadge = `<span class="module-status-badge in-progress">▶️ Em Progresso</span>`;
+        } else {
+          statusBadge = `<span class="module-status-badge not-started">🎯 Disponível</span>`;
+        }
+
+        const card = document.createElement('a');
+        card.href = unlocked ? mod.file : '#';
+        card.className = `module-card ${statusClass}`;
+        card.onclick = unlocked ? null : (e) => e.preventDefault();
+
+        card.innerHTML = `
+          <div class="module-card-banner ${mod.color}">
+            <span style="position:relative;z-index:1;">${mod.icon}</span>
+            ${!unlocked ? `
+              <div class="module-lock-overlay">
+                <span class="lock-icon">🔒</span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="module-card-body">
+            <div class="module-card-number">Módulo ${mod.id}</div>
+            <div class="module-card-title">${mod.title}</div>
+            <div class="module-card-desc">${mod.desc}</div>
+            <div class="module-card-progress">
+              <div class="module-card-progress-header">
+                <span>${stepsCompleted} de ${totalSteps} passos</span>
+                <span>${progressPct}%</span>
+              </div>
+              <div class="progress-bar-custom" style="height:8px;">
+                <div class="progress-bar-fill ${completed ? 'green' : ''}" style="width:${progressPct}%;"></div>
+              </div>
+            </div>
+            <div class="module-card-footer">
+              ${statusBadge}
+              <div class="module-xp-reward">+${App.MODULES_CONFIG.find(m=>m.id===mod.id)?.xpReward || 50} XP</div>
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    /**
+     * Renderiza links de módulos na sidebar.
+     */
+    function renderSidebarModules(state) {
+      const container = document.getElementById('sidebar-modules');
+      container.innerHTML = '';
+
+      MODULES_DISPLAY.forEach(mod => {
+        const modData = state.modules?.[mod.id] || {};
+        const unlocked = App.isModuleUnlocked(mod.id);
+        const completed = modData.completed || false;
+        const stepsCompleted = Object.values(modData.steps || {}).filter(Boolean).length;
+        const pct = completed ? 100 : Math.round((stepsCompleted / 5) * 100);
+
+        const btn = document.createElement('button');
+        btn.className = `nav-link ${!unlocked ? 'disabled' : ''}`;
+        btn.style.opacity = unlocked ? '1' : '0.5';
+        btn.style.cursor = unlocked ? 'pointer' : 'not-allowed';
+        btn.innerHTML = `
+          <div class="nav-link-icon">${completed ? '✅' : mod.icon}</div>
+          <span style="flex:1; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            ${mod.title}
+          </span>
+          <div class="progress-mini">
+            <div class="progress-mini-bar">
+              <div class="progress-mini-fill" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+
+        if (unlocked) {
+          btn.onclick = () => window.location.href = mod.file;
+        }
+
+        container.appendChild(btn);
+      });
+    }
+
+    /**
+     * Renderiza as medalhas.
+     */
+    function renderMedals(state) {
+      const grid = document.getElementById('medals-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const earnedMedals = state.medals || [];
+
+      App.MEDALS_CONFIG.forEach(medal => {
+        const earned = earnedMedals.includes(medal.id);
+
+        const div = document.createElement('div');
+        div.className = 'medal';
+        div.title = earned ? medal.description : 'Bloqueada — Continue estudando!';
+
+        div.innerHTML = `
+          <div class="medal-icon ${earned ? medal.color : 'locked'}">${medal.icon}</div>
+          <div class="medal-name">${medal.name}</div>
+        `;
+
+        grid.appendChild(div);
+      });
+
+      // Atualiza stat de medalhas
+      const statMedals = document.getElementById('stat-medals');
+      if (statMedals) statMedals.textContent = earnedMedals.length;
+    }
+
+    /**
+     * Renderiza o ranking com dados mockados + aluno atual.
+     */
+    function renderRanking(state) {
+      const table = document.getElementById('ranking-table');
+      if (!table) return;
+
+      const studentName = state.student?.name || 'Você';
+      const studentXP = state.totalXP || 0;
+      const studentModules = Object.values(state.modules || {}).filter(m => m.completed).length;
+
+      // Combina ranking com aluno atual
+      const allPlayers = [
+        ...RANKING_DATA,
+        { name: studentName, avatar: '⭐', modules: studentModules, xp: studentXP, isYou: true }
+      ];
+
+      // Ordena por XP
+      allPlayers.sort((a, b) => b.xp - a.xp);
+
+      const rankClasses = ['gold', 'silver', 'bronze'];
+      const rankEmojis = ['🥇', '🥈', '🥉'];
+
+      table.innerHTML = `
+        <div class="ranking-header">
+          <div>#</div>
+          <div>Aluno</div>
+          <div style="text-align:center;">Módulos</div>
+          <div style="text-align:right;">XP</div>
+        </div>
+      `;
+
+      allPlayers.forEach((player, i) => {
+        const rank = i + 1;
+        const rankClass = i < 3 ? rankClasses[i] : '';
+        const rankEmoji = i < 3 ? rankEmojis[i] : rank;
+
+        const row = document.createElement('div');
+        row.className = `ranking-row ${player.isYou ? 'highlight' : ''}`;
+        row.innerHTML = `
+          <div class="rank-position ${rankClass}">${rankEmoji}</div>
+          <div class="rank-student">
+            <div class="rank-avatar">${player.avatar}</div>
+            <div>
+              <div class="rank-name">${player.name}${player.isYou ? ' <span style="font-size:11px;color:var(--primary)">(Você)</span>' : ''}</div>
+            </div>
+          </div>
+          <div class="rank-modules">${player.modules}/8</div>
+          <div class="rank-xp">${player.xp.toLocaleString('pt-BR')} ⭐</div>
+        `;
+
+        table.appendChild(row);
+      });
+    }
+
+    /**
+     * Renderiza o feed de atividades recentes.
+     */
+    function renderActivityFeed(state) {
+      const feed = document.getElementById('activity-feed');
+      if (!feed) return;
+
+      const activities = state.activities || [];
+
+      if (activities.length === 0) {
+        feed.innerHTML = `
+          <div style="padding:32px; text-align:center; color:var(--text-muted);">
+            <div style="font-size:48px; margin-bottom:12px;">🎯</div>
+            <div style="font-size:16px; font-weight:600;">Nenhuma atividade ainda</div>
+            <div style="font-size:14px; margin-top:4px;">Comece estudando um módulo para ver seu progresso aqui!</div>
+            <a href="modules/module1.html" class="btn btn-primary btn-sm" style="margin-top:16px; display:inline-flex;">
+              Começar Módulo 1
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      feed.innerHTML = activities.slice(0, 6).map(act => {
+        const icons = { module: '📚', xp: '⭐', medal: '🏅' };
+        return `
+          <div class="activity-item animate-fadeInUp">
+            <div class="activity-icon ${act.type}">
+              <span>${icons[act.type] || '📌'}</span>
+            </div>
+            <div class="activity-text">
+              <div class="activity-title">${act.text}</div>
+              <div class="activity-time">${App.formatTimeAgo(act.timestamp)}</div>
+            </div>
+            ${act.xp ? `<div class="activity-xp">+${act.xp} XP</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    /**
+     * Renderiza as estatísticas do dashboard.
+     */
+    function renderStats(state) {
+      const completedModules = Object.values(state.modules || {}).filter(m => m.completed).length;
+
+      const statModules = document.getElementById('stat-modules');
+      if (statModules) statModules.textContent = `${completedModules}/8`;
+
+      const statHours = document.getElementById('stat-hours');
+      if (statHours) statHours.textContent = `${completedModules * 5}h`;
+    }
+
+    /**
+     * Renderiza a barra de progresso geral.
+     */
+    function renderOverallProgress(state) {
+      const completedModules = Object.values(state.modules || {}).filter(m => m.completed).length;
+      const pct = Math.round((completedModules / 8) * 100);
+
+      const bar = document.getElementById('overall-progress-bar');
+      if (bar) bar.style.width = pct + '%';
+
+      const label = document.getElementById('progress-label');
+      if (label) label.textContent = `${pct}% Completo`;
+
+      const sublabel = document.getElementById('progress-sublabel');
+      if (sublabel) {
+        if (completedModules === 0) {
+          sublabel.textContent = 'Módulo 1 desbloqueado — Comece agora!';
+        } else if (completedModules === 8) {
+          sublabel.innerHTML = '🎉 Parabéns! Você completou todos os módulos!<br><button class="btn btn-success" style="margin-top:12px; padding: 8px 16px; font-size:14px;" onclick="previewCertificate()">🏆 Ver meu Certificado</button>';
+        } else {
+          const nextModule = App.MODULES_CONFIG.find(m => !state.modules?.[m.id]?.completed);
+          sublabel.textContent = nextModule ? `Próximo: ${nextModule.title}` : 'Continue avançando!';
+        }
+      }
+    }
+
+    // ===================================================
+    // FUNÇÕES DE UI
+    // ===================================================
+
+    function showSection(sectionName) {
+      ['overview', 'modules', 'medals', 'ranking'].forEach(s => {
+        const el = document.getElementById(`section-${s}`);
+        if (el) el.style.display = s === sectionName ? 'block' : 'none';
+      });
+
+      // Atualiza nav links ativos
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
+    }
+
+    function confirmReset() {
+      document.getElementById('confirm-modal').classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function doReset() {
+      App.resetProgress();
+      closeModal('confirm-modal');
+      App.showToast('success', 'Progresso Reiniciado', 'Sua jornada recomeça do zero!');
+      setTimeout(() => initDashboard(), 500);
+    }
+
+    function exitToHome() {
+      window.location.href = 'index.html';
+    }
+
+    // ===================================================
+    // INICIALIZAÇÃO
+    // ===================================================
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  </script>
+</body>
+</html>
