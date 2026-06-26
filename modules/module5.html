@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Módulo 5 — Internet</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <style>
+    body { background: var(--bg); }
+
+    /* ===== SIMULADOR DE NAVEGADOR ===== */
+    .browser-sim {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 480px;
+    }
+    .browser-tabs {
+      background: #DEE1E6;
+      display: flex;
+      padding: 8px 8px 0 8px;
+      gap: 4px;
+    }
+    .browser-tab {
+      background: white;
+      padding: 8px 16px;
+      border-radius: 8px 8px 0 0;
+      font-size: 12px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 150px;
+    }
+    .browser-toolbar {
+      background: white;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .browser-nav-btns { display: flex; gap: 8px; }
+    .browser-btn {
+      background: none; border: none; font-size: 16px; color: #64748B;
+      cursor: pointer; width: 32px; height: 32px; border-radius: 50%;
+    }
+    .browser-btn:hover { background: #F1F5F9; }
+    
+    .browser-address {
+      flex: 1;
+      background: #F1F5F9;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 14px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .browser-address input {
+      border: none; background: transparent; width: 100%; outline: none; font-family: inherit; font-size: inherit;
+    }
+
+    .browser-content {
+      flex: 1;
+      background: white;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tela do Google Fake */
+    .fake-search-page {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px;
+    }
+    .fake-logo { font-size: 48px; font-weight: 800; color: #4285F4; margin-bottom: 24px; letter-spacing: -2px; }
+    .fake-logo span:nth-child(2) { color: #EA4335; }
+    .fake-logo span:nth-child(3) { color: #FBBC05; }
+    .fake-logo span:nth-child(4) { color: #4285F4; }
+    .fake-logo span:nth-child(5) { color: #34A853; }
+    .fake-logo span:nth-child(6) { color: #EA4335; }
+    
+    .fake-search-box {
+      width: 100%; max-width: 500px;
+      border: 1px solid #DFE1E5; border-radius: 24px;
+      padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 1px 6px rgba(32,33,36,0.1);
+    }
+    .fake-search-box:hover { box-shadow: 0 1px 6px rgba(32,33,36,0.2); }
+    .fake-search-box input { flex: 1; border: none; outline: none; font-size: 16px; }
+    .fake-search-btn { margin-top: 24px; padding: 10px 20px; background: #F8F9FA; border: 1px solid #F8F9FA; border-radius: 4px; cursor: pointer; color: #3C4043; font-size: 14px; }
+    .fake-search-btn:hover { border-color: #DADCE0; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+
+    /* Tela de Resultados Fake */
+    .fake-results-page {
+      padding: 24px; overflow-y: auto; height: 100%; display: none;
+    }
+    .fake-result-item { margin-bottom: 24px; }
+    .fake-result-url { font-size: 12px; color: #202124; margin-bottom: 4px; }
+    .fake-result-title { font-size: 20px; color: #1A0DAB; text-decoration: none; cursor: pointer; }
+    .fake-result-title:hover { text-decoration: underline; }
+    .fake-result-desc { font-size: 14px; color: #4D5156; margin-top: 4px; line-height: 1.5; }
+
+    /* Tela de Conteúdo Fake (Site) */
+    .fake-site-page {
+      padding: 40px; overflow-y: auto; height: 100%; display: none;
+    }
+
+    .mission-hud {
+      background: var(--primary-ultra-light); border: 1px dashed var(--primary);
+      padding: 16px; border-radius: var(--radius); margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+  </style>
+</head>
+<body>
+
+  <nav class="module-nav">
+    <a href="../dashboard.html" style="font-size:22px;text-decoration:none;" title="Dashboard">🏠</a>
+    <div class="module-nav-title">🌐 Módulo 5 — Internet</div>
+    <div class="step-progress" id="step-progress"></div>
+    <div class="step-label" id="step-label">Passo 1/4</div>
+    <div class="xp-badge" style="font-size:13px;">⭐ <span id="nav-xp">0</span></div>
+  </nav>
+
+  <div class="module-container">
+    <div id="step-content"></div>
+  </div>
+
+  <div class="module-footer">
+    <div class="module-footer-info"><span id="footer-step">Passo 1 de 4</span></div>
+    <div class="module-footer-actions">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()" style="display:none;">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Próximo →</button>
+    </div>
+  </div>
+
+  <button class="help-fab" onclick="showHelp()">❓</button>
+  <div class="modal-custom" id="help-modal">
+    <div class="modal-box">
+      <div class="modal-box-header">
+        <h3 id="help-title">❓ Ajuda</h3>
+        <button class="modal-close" onclick="closeHelp()">✕</button>
+      </div>
+      <div class="modal-box-body" id="help-body"></div>
+      <div class="modal-box-footer"><button class="btn btn-primary" onclick="closeHelp()">Entendi!</button></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../js/app.js"></script>
+  <script>
+    const MODULE_ID = 5;
+    let currentStep = 0;
+    let quizAnswers = {};
+    let quizScore = 0;
+    let stepUnlocked = false;
+
+    let searchMissionDone = false;
+
+    // QUIZ
+    const QUIZ_QUESTIONS = [
+      { question: 'O que é um Navegador (Browser)?', options: ['Um site de buscas como o Google', 'Um programa usado para acessar a internet (ex: Chrome, Edge)', 'O cabo que conecta o computador à rede', 'A mesma coisa que o Wi-Fi'], correct: 1, explanation: 'Browser ou Navegador é o programa que "lê" os sites. Chrome, Edge, Firefox e Safari são exemplos.' },
+      { question: 'O que é a Nuvem (Cloud)?', options: ['A previsão do tempo no computador', 'Um lugar físico onde a internet fica guardada', 'Computadores potentes (servidores) de empresas que armazenam seus arquivos pela internet', 'Um pen drive virtual'], correct: 2, explanation: 'A nuvem são servidores distantes que guardam seus dados, como fotos no Google Fotos ou arquivos no OneDrive.' },
+      { question: 'O que significa URL?', options: ['Uma Unidade de Rede Local', 'O endereço de um site (ex: www.google.com)', 'Uma linguagem de programação', 'A senha do Wi-Fi'], correct: 1, explanation: 'URL é o endereço de um site que você digita na barra lá em cima no navegador.' },
+      { question: 'Qual a melhor forma de pesquisar "Receita de bolo de cenoura sem chocolate" no buscador?', options: ['receita de bolo', 'BOLO DE CENOURA', 'receita bolo cenoura -chocolate', 'como fazer um bolo de cenoura e eu não quero colocar cobertura de chocolate'], correct: 2, explanation: 'Usar palavras-chave diretas e o sinal de menos (-) para excluir palavras ("-chocolate") é a forma mais profissional de pesquisar!' },
+      { question: 'O que significa o "https" no começo de um endereço de site?', options: ['Que a internet está rápida', 'Que o site tem vídeos', 'Que a conexão é segura e criptografada', 'Que o site foi criado recentemente'], correct: 2, explanation: 'O "S" no HTTPS vem de "Secure" (Seguro). Significa que os dados enviados (como senhas) são embaralhados para que hackers não consigam ler.' },
+      { question: 'O que é um "Link"?', options: ['Uma marca de computador', 'Qualquer texto, imagem ou botão que te leva para outra página na internet ao ser clicado', 'Um vírus', 'O mesmo que um cabo de rede'], correct: 1, explanation: 'Links (ou hiperlinks) são as pontes da internet. Eles conectam uma página a outra.' },
+      { question: 'Se você fechar o navegador por acidente, a internet para de funcionar no seu bairro?', options: ['Sim', 'Não, você só fechou o programa que lê os sites no seu computador', 'Depende da sua operadora', 'Sim, e você precisa reiniciar o roteador'], correct: 1, explanation: 'O navegador é apenas um programa (como o Word ou o Paint). Fechá-lo não afeta a rede mundial de computadores!' },
+      { question: 'Qual das alternativas NÃO é um navegador de internet?', options: ['Google Chrome', 'Microsoft Edge', 'Mozilla Firefox', 'Microsoft Word'], correct: 3, explanation: 'O Microsoft Word é um editor de texto, não um navegador de internet.' },
+      { question: 'Ao pesquisar no Google, se você quiser pesquisar EXATAMENTE uma frase, o que você deve usar?', options: ['Sinal de mais (+)', 'Aspas (" ")', 'Letras maiúsculas', 'Ponto de interrogação (?)'], correct: 1, explanation: 'Colocar a frase entre aspas (ex: "bolo de cenoura fofinho") faz o Google procurar exatamente essas palavras nessa mesma ordem.' },
+      { question: 'Onde fica a Barra de Endereços em um navegador?', options: ['No rodapé da página', 'No centro da tela', 'Na parte superior do navegador, onde você digita o site', 'Escondida no menu de configurações'], correct: 2, explanation: 'A barra de endereços (ou URL bar) fica no topo da janela do navegador.' }
+    ];
+
+    const STEPS = [
+      { title:'📖 Como a Internet Funciona', render: renderStep1 },
+      { title:'🌐 Navegadores e Links', render: renderStep2 },
+      { title:'🔍 O Poder da Pesquisa', render: renderStep3 },
+      { title:'✅ Quiz Final', render: renderStep4 },
+    ];
+
+    // ===== PASSO 1 =====
+    function renderStep1() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#2563EB,#1D4ED8);">
+            <div class="hero-badge">📖 Teoria — Passo 1 de 4</div>
+            <h2>O que é a Internet?</h2>
+            <p>A maior rede de computadores interligados do mundo.</p>
+          </div>
+
+          <div class="stagger" style="margin-top:24px;">
+            <div class="card animate-fadeInUp" style="margin-bottom:16px;">
+              <div class="card-body">
+                <h3 style="margin-bottom:8px; display:flex; align-items:center; gap:8px;"><span style="font-size:24px;">🌐</span> A Teia Global (WWW)</h3>
+                <p style="color:var(--text-secondary); line-height:1.6;">
+                  A Internet é literalmente cabos (por terra e pelo fundo do oceano) e sinais (Wi-Fi/Celular) que conectam computadores no mundo todo. 
+                  Quando você acessa um site, seu computador pede a informação para outro computador (chamado Servidor) que pode estar do outro lado do mundo, e a resposta chega em milissegundos.
+                </p>
+              </div>
+            </div>
+
+            <div class="card animate-fadeInUp" style="margin-bottom:16px;">
+              <div class="card-body">
+                <h3 style="margin-bottom:8px; display:flex; align-items:center; gap:8px;"><span style="font-size:24px;">☁️</span> O que é a famosa "Nuvem"?</h3>
+                <p style="color:var(--text-secondary); line-height:1.6;">
+                  Quando dizem que algo "está na nuvem", não significa que está no céu! Significa que o arquivo não está gravado no SEU computador (no seu HD), 
+                  mas sim em <strong>servidores gigantes de empresas</strong> como Google, Microsoft ou Apple, acessíveis através da internet.
+                </p>
+                <div style="margin-top:12px; background:#F8FAFC; padding:12px; border-radius:8px;">
+                  <strong>Vantagens da Nuvem:</strong>
+                  <ul style="margin-top:4px; margin-left:20px; font-size:14px; color:#475569;">
+                    <li>Você pode acessar do celular, do computador do trabalho, etc.</li>
+                    <li>Se o seu computador quebrar, o arquivo não se perde!</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          ${!stepUnlocked ? `
+            <div style="text-align:center; margin-top:32px;">
+              <button class="btn btn-outline" onclick="this.style.display='none'; unlockNext();" style="border-width:2px; font-weight:bold;">✅ Marcar como lido e entendido</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ===== PASSO 2 =====
+    function renderStep2() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#059669,#047857);">
+            <div class="hero-badge">🌐 Navegação — Passo 2 de 4</div>
+            <h2>Navegadores, Links e URLs</h2>
+            <p>O carro, a estrada e o endereço da internet.</p>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:20px; margin-top:24px;">
+            <div class="card">
+              <div class="card-body">
+                <div style="font-size:40px; margin-bottom:12px;">🧭</div>
+                <h3>O Navegador (Browser)</h3>
+                <p style="color:var(--text-secondary); line-height:1.5; font-size:14px; margin-top:8px;">
+                  É o "veículo" que você usa para andar na internet. Sem ele, você não lê sites.
+                </p>
+                <p style="margin-top:12px; font-weight:bold; font-size:14px; color:#1E293B;">Exemplos:</p>
+                <ul style="color:var(--text-secondary); font-size:14px; margin-left:20px;">
+                  <li>Google Chrome</li>
+                  <li>Microsoft Edge</li>
+                  <li>Mozilla Firefox</li>
+                  <li>Safari</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-body">
+                <div style="font-size:40px; margin-bottom:12px;">📍</div>
+                <h3>A URL (O Endereço)</h3>
+                <p style="color:var(--text-secondary); line-height:1.5; font-size:14px; margin-top:8px;">
+                  É o endereço exato de um site. Fica na barra superior do navegador.
+                </p>
+                <div style="margin-top:12px; background:#F1F5F9; padding:8px; border-radius:4px; font-family:monospace; font-size:13px; text-align:center;">
+                  <span style="color:#2563EB;">https://</span><span style="font-weight:bold;">www.google.com</span>
+                </div>
+                <p style="font-size:12px; color:#64748B; margin-top:8px;">O "https" no começo indica que a conexão é segura (criptografada)!</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-body">
+                <div style="font-size:40px; margin-bottom:12px;">🔗</div>
+                <h3>Links</h3>
+                <p style="color:var(--text-secondary); line-height:1.5; font-size:14px; margin-top:8px;">
+                  São as "portas". É qualquer texto azul, botão ou imagem que, quando clicado, te leva para outra página ou site.
+                </p>
+                <div style="margin-top:12px; text-align:center;">
+                  <span style="color:var(--primary); text-decoration:underline; cursor:pointer;">Isso é um exemplo de Link!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== PASSO 3 =====
+    function renderStep3() {
+      setTimeout(() => { resetBrowserSim(); }, 0);
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#D97706,#B45309);">
+            <div class="hero-badge">🔍 Pesquisa — Passo 3 de 4</div>
+            <h2>Pesquisando como um Profissional</h2>
+            <p>O Google é inteligente, mas você precisa saber como perguntar!</p>
+          </div>
+
+          <div class="mission-hud" id="mission-hud" style="margin-top:24px;">
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Missão Prática</div>
+              <div style="font-size:18px; font-weight:800; color:var(--primary-dark);" id="mission-text">Faça uma pesquisa no simulador abaixo!</div>
+            </div>
+            <div style="font-size:32px;">🎯</div>
+          </div>
+
+          <!-- SIMULADOR NAVEGADOR -->
+          <div class="browser-sim">
+            <div class="browser-tabs">
+              <div class="browser-tab">
+                <span style="color:#4285F4;"><i class="fa-brands fa-google"></i></span> Nova Guia
+              </div>
+            </div>
+            <div class="browser-toolbar">
+              <div class="browser-nav-btns">
+                <button class="browser-btn" onclick="simGoBack()"><i class="fa-solid fa-arrow-left"></i></button>
+                <button class="browser-btn" disabled><i class="fa-solid fa-arrow-right"></i></button>
+                <button class="browser-btn" onclick="resetBrowserSim()"><i class="fa-solid fa-rotate-right"></i></button>
+              </div>
+              <div class="browser-address">
+                <i class="fa-solid fa-lock" style="color:#10B981; font-size:12px;"></i>
+                <input type="text" id="sim-url" value="https://www.google.com" readonly>
+              </div>
+            </div>
+
+            <div class="browser-content" id="sim-content">
+              
+              <!-- TELA HOME -->
+              <div class="fake-search-page" id="sim-page-home">
+                <div class="fake-logo">
+                  <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+                </div>
+                <div class="fake-search-box">
+                  <i class="fa-solid fa-magnifying-glass" style="color:#9AA0A6;"></i>
+                  <input type="text" id="sim-search-input" placeholder="Pesquise no Google ou digite um URL" onkeypress="handleSimEnter(event)">
+                </div>
+                <div style="display:flex; gap:12px;">
+                  <button class="fake-search-btn" onclick="doSimSearch()">Pesquisa Google</button>
+                </div>
+              </div>
+
+              <!-- TELA RESULTADOS -->
+              <div class="fake-results-page" id="sim-page-results">
+                <div style="color:#70757A; font-size:14px; margin-bottom:20px;">Aproximadamente 1.240.000 resultados (0,32 segundos)</div>
+                <div id="sim-results-list"></div>
+              </div>
+
+              <!-- TELA SITE -->
+              <div class="fake-site-page" id="sim-page-site">
+                <div style="max-width:600px; margin:0 auto; background:#F8FAFC; padding:32px; border-radius:8px; border:1px solid #CBD5E1;">
+                  <h1 style="font-size:24px; color:#0F172A; margin-bottom:16px;">Parabéns! 🎂</h1>
+                  <p style="color:#334155; line-height:1.6;">Você encontrou a receita perfeita de bolo de cenoura.</p>
+                  <ul style="margin-top:16px; margin-left:20px; color:#475569;">
+                    <li>3 cenouras</li>
+                    <li>4 ovos</li>
+                    <li>2 xícaras de açúcar</li>
+                  </ul>
+                  <div style="margin-top:24px; padding:16px; background:#DCFCE7; color:#166534; border-radius:4px; font-weight:bold; text-align:center;">
+                    Missão Cumprida! Você ganhou +20 XP.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
+          <div class="info-box tip" style="margin-top:16px;">
+            <div class="info-box-title">💡 Dica Profissional de Pesquisa</div>
+            <div class="info-box-body">
+              Use <strong>palavras-chave</strong>. O Google não precisa de frases completas.<br>
+              ❌ Ruim: "olá google como eu faço para fazer um bolo de cenoura na minha casa"<br>
+              ✅ Bom: <strong>"receita bolo cenoura liquidificador"</strong>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    // Lógica do Simulador
+    function resetBrowserSim() {
+      document.getElementById('sim-page-home').style.display = 'flex';
+      document.getElementById('sim-page-results').style.display = 'none';
+      document.getElementById('sim-page-site').style.display = 'none';
+      document.getElementById('sim-url').value = 'https://www.google.com';
+      document.getElementById('sim-search-input').value = '';
+      
+      if(!searchMissionDone) {
+        document.getElementById('mission-text').textContent = 'Pesquise por "bolo de cenoura" e clique na receita!';
+      }
+    }
+
+    function handleSimEnter(e) {
+      if(e.key === 'Enter') doSimSearch();
+    }
+
+    function doSimSearch() {
+      const q = document.getElementById('sim-search-input').value.trim().toLowerCase();
+      if(!q) return;
+
+      App.playSound('click');
+
+      document.getElementById('sim-page-home').style.display = 'none';
+      document.getElementById('sim-page-results').style.display = 'block';
+      document.getElementById('sim-page-site').style.display = 'none';
+      document.getElementById('sim-url').value = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+
+      const list = document.getElementById('sim-results-list');
+      
+      if(q.includes('bolo') || q.includes('receita')) {
+        list.innerHTML = `
+          <div class="fake-result-item">
+            <div class="fake-result-url">https://www.receitasfofas.com.br > bolos</div>
+            <div class="fake-result-title" onclick="openSimSite()">A Melhor Receita de Bolo de Cenoura Fofinho</div>
+            <div class="fake-result-desc">Aprenda a fazer um bolo de cenoura super fofinho com cobertura de chocolate. Receita fácil de liquidificador. Feito em 40 minutos.</div>
+          </div>
+          <div class="fake-result-item">
+            <div class="fake-result-url">https://www.tudogostoso.com > bolo-cenoura</div>
+            <div class="fake-result-title" onclick="openSimSite()">Bolo de Cenoura Rápido e Fácil</div>
+            <div class="fake-result-desc">Esta é aquela receita clássica de família que nunca dá errado. Ingredientes: cenouras médias, farinha de trigo, açúcar...</div>
+          </div>
+        `;
+      } else {
+        list.innerHTML = `
+          <div class="fake-result-item">
+            <div class="fake-result-url">https://www.wikipedia.org > wiki > ${q.replace(/\s+/g,'_')}</div>
+            <div class="fake-result-title" onclick="App.playSound('click');App.showToast('info','Ops!','Essa não é a receita de bolo. Tente voltar e pesquisar sobre bolo!')">${document.getElementById('sim-search-input').value} - Wikipédia</div>
+            <div class="fake-result-desc">Resultados gerais para a sua pesquisa.</div>
+          </div>
+        `;
+      }
+    }
+
+    function openSimSite() {
+      App.playSound('correct');
+      document.getElementById('sim-page-results').style.display = 'none';
+      document.getElementById('sim-page-site').style.display = 'block';
+      document.getElementById('sim-url').value = 'https://www.receitasfofas.com.br/bolo-cenoura';
+
+      if(!searchMissionDone) {
+        searchMissionDone = true;
+        const hud = document.getElementById('mission-hud');
+        hud.style.background = 'var(--success-light)';
+        hud.style.borderColor = 'var(--success)';
+        document.getElementById('mission-text').textContent = '✅ Missão Cumprida!';
+        App.showToast('success', 'Excelente!', 'Você sabe pesquisar e encontrar o que precisa!');
+        App.completeStep(MODULE_ID, 2, 20); // XP bônus
+        unlockNext();
+      }
+    }
+
+    function simGoBack() {
+      App.playSound('click');
+      if (document.getElementById('sim-page-site').style.display === 'block') {
+        document.getElementById('sim-page-site').style.display = 'none';
+        document.getElementById('sim-page-results').style.display = 'block';
+        const q = document.getElementById('sim-search-input').value;
+        document.getElementById('sim-url').value = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+      } else if (document.getElementById('sim-page-results').style.display === 'block') {
+        resetBrowserSim();
+      }
+    }
+
+
+    // ===== PASSO 4: QUIZ =====
+    function renderStep4() {
+      const questionIndex = Object.keys(quizAnswers).length;
+      if (questionIndex >= QUIZ_QUESTIONS.length) return renderQuizResult();
+      const q = QUIZ_QUESTIONS[questionIndex];
+      const letters = ['A','B','C','D'];
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#059669,#047857);">
+            <div class="hero-badge">✅ Quiz — Passo 4 de 4</div>
+            <h2>Teste de Internet!</h2>
+          </div>
+          <div style="max-width:620px;margin:0 auto;">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(questionIndex/QUIZ_QUESTIONS.length)*100}%"></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${questionIndex+1}/${QUIZ_QUESTIONS.length}</span>
+            </div>
+            <div class="card">
+              <div class="card-body" style="padding:28px;">
+                <div class="quiz-question">${q.question}</div>
+                <div class="quiz-options">
+                  ${q.options.map((opt,i)=>`
+                    <div class="quiz-option" id="option-${i}" onclick="answerQuiz(${questionIndex},${i})">
+                      <div class="quiz-letter">${letters[i]}</div><span>${opt}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback"><span class="quiz-feedback-icon"></span><div class="quiz-feedback-text"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuizResult() {
+      const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+      const stars = pct>=80?3:pct>=60?2:1;
+      return `
+        <div class="module-section" style="text-align:center;">
+          <div class="card" style="max-width:500px;margin:40px auto;padding:40px 32px;">
+            <div style="font-size:72px;margin-bottom:16px;">${pct>=80?'🏆':pct>=60?'🌟':'📚'}</div>
+            <h2>${pct>=80?'Navegador Web!':pct>=60?'Muito Bem!':'Continue Praticando!'}</h2>
+            <div style="font-size:48px;font-weight:900;font-family:var(--font-heading);color:var(--primary);margin:16px 0;">${pct}%</div>
+            <div style="color:var(--text-secondary);margin-bottom:20px;">Acertou ${quizScore} de ${QUIZ_QUESTIONS.length}</div>
+            <div class="stars-row">${Array.from({length:3},(_,i)=>`<span class="star-item" style="color:${i<stars?'#F59E0B':'#E2E8F0'}">${i<stars?'⭐':'☆'}</span>`).join('')}</div>
+            <button class="btn btn-success btn-lg" style="margin-top:24px;" onclick="finishModule()">🚀 Concluir Módulo! +70 XP</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // LÓGICA BASE
+    function answerQuiz(qIdx, optIdx) {
+      const q = QUIZ_QUESTIONS[qIdx];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      const correct = optIdx === q.correct;
+      if (correct) quizScore++;
+      quizAnswers[qIdx] = { selected: optIdx, correct: q.correct };
+      document.getElementById(`option-${optIdx}`).classList.add(correct?'correct':'incorrect');
+      if (!correct) document.getElementById(`option-${q.correct}`).classList.add('correct');
+      const fb = document.getElementById('quiz-feedback');
+      fb.innerHTML = `<span class="quiz-feedback-icon">${correct?'✅':'❌'}</span><div class="quiz-feedback-text"><strong>${correct?'Correto! 🎉':'Oops!'}</strong><div style="margin-top:4px;">${q.explanation}</div></div>`;
+      fb.className = `quiz-feedback show ${correct?'correct':'incorrect'}`;
+      App.playSound(correct?'correct':'incorrect');
+      setTimeout(renderCurrentStep, 2200);
+    }
+    function finishModule() {
+      const pct = Math.round((quizScore/QUIZ_QUESTIONS.length)*100);
+      App.saveQuizScore(MODULE_ID, pct);
+      App.completeModule(MODULE_ID, pct);
+      App.showModuleComplete(MODULE_ID, pct);
+    }
+    function unlockNext() {
+      stepUnlocked = true;
+      document.getElementById('btn-next').style.display = 'inline-flex';
+      App.playSound('correct');
+    }
+
+    function renderCurrentStep() {
+      const progress = App.getModuleProgress(MODULE_ID);
+      stepUnlocked = currentStep < (progress.currentStep || 0);
+
+      document.getElementById('step-content').innerHTML = STEPS[currentStep].render();
+      let html = '';
+      STEPS.forEach((_,i) => {
+        html += `<div class="step-dot ${i<currentStep?'done':i===currentStep?'active':'pending'}"></div>`;
+        if (i<STEPS.length-1) html += `<div class="step-line ${i<currentStep?'done':''}"></div>`;
+      });
+      document.getElementById('step-progress').innerHTML = html;
+      document.getElementById('step-label').textContent = `Passo ${currentStep+1}/${STEPS.length}`;
+      document.getElementById('footer-step').textContent = `Passo ${currentStep+1} de ${STEPS.length}: ${STEPS[currentStep].title}`;
+      document.getElementById('btn-prev').style.display = currentStep>0?'inline-flex':'none';
+      
+      if (currentStep === STEPS.length - 1) {
+        document.getElementById('btn-next').style.display = 'none';
+      } else {
+        document.getElementById('btn-next').style.display = stepUnlocked ? 'inline-flex' : 'none';
+      }
+
+      const state = App.loadState();
+      if (state) document.getElementById('nav-xp').textContent = state.totalXP||0;
+    }
+    function nextStep() {
+      if (currentStep < STEPS.length-1) {
+        if (currentStep < 2) App.completeStep(MODULE_ID, currentStep, 10);
+        currentStep++;
+        renderCurrentStep();
+        window.scrollTo({top:0,behavior:'smooth'});
+        App.playSound('click');
+      }
+    }
+    function prevStep() { if (currentStep>0) { currentStep--; renderCurrentStep(); window.scrollTo({top:0,behavior:'smooth'}); } }
+
+    const HELPS = [
+      {title:'❓ A Nuvem',body:'O conceito de Nuvem (Cloud) confunde muita gente. Pense nela apenas como "o computador de outra empresa (tipo Google) guardando seus arquivos pela internet".'},
+      {title:'❓ URL e Links',body:'URL é o texto na barra lá em cima. Se você apagá-lo e digitar "www.youtube.com", você vai para o YouTube.'},
+      {title:'❓ Como pesquiso?',body:'No simulador, clique na barra que diz "Pesquise no Google", digite <strong>bolo de cenoura</strong> e aperte Enter ou clique no botão! Depois, clique no link azul do resultado.'},
+      {title:'❓ Quiz',body:'Responda as perguntas baseadas no que aprendeu. Boa sorte!'}
+    ];
+    function showHelp() {
+      const h = HELPS[currentStep]||HELPS[0];
+      document.getElementById('help-title').innerHTML = h.title;
+      document.getElementById('help-body').innerHTML = h.body;
+      document.getElementById('help-modal').classList.add('active');
+    }
+    function closeHelp() { document.getElementById('help-modal').classList.remove('active'); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      App.requireStudent();
+      const progress = App.getModuleProgress(MODULE_ID);
+      currentStep = Math.min(progress.currentStep||0, STEPS.length-1);
+      if (progress.quizScore>0) { for(let i=0;i<QUIZ_QUESTIONS.length;i++) quizAnswers[i]=true; quizScore=Math.round((progress.quizScore/100)*QUIZ_QUESTIONS.length); searchMissionDone = true; }
+      renderCurrentStep();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Módulo 8 — Ferramentas Essenciais</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <style>
+    body { background: var(--bg); }
+
+    /* ===== ICONES DE FERRAMENTAS ===== */
+    .tools-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-top: 24px;
+    }
+    .tool-card {
+      background: white; border: 1px solid #CBD5E1; border-radius: var(--radius-lg);
+      padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center;
+      transition: var(--transition);
+    }
+    .tool-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+    .tool-icon {
+      width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+      font-size: 32px; color: white; margin-bottom: 16px;
+    }
+    
+    .icon-word { background: #2B579A; }
+    .icon-excel { background: #217346; }
+    .icon-ppt { background: #B7472A; }
+    .icon-pdf { background: #F40F02; }
+
+    /* ===== COMPARADOR OFFLINE VS CLOUD ===== */
+    .compare-box {
+      display: flex; gap: 24px; margin-top: 24px; background: white; border: 1px solid #CBD5E1;
+      border-radius: var(--radius-lg); padding: 24px; flex-wrap: wrap;
+    }
+    .compare-side { flex: 1; min-width: 250px; }
+    .compare-side h4 { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 18px; }
+    .compare-list { list-style: none; padding: 0; margin: 0; color: var(--text-secondary); line-height: 1.6; }
+    .compare-list li { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .compare-list li i { margin-top: 4px; }
+
+  </style>
+</head>
+<body>
+
+  <nav class="module-nav">
+    <a href="../dashboard.html" style="font-size:22px;text-decoration:none;" title="Dashboard">🏠</a>
+    <div class="module-nav-title">🛠️ Módulo 8 — Ferramentas Essenciais</div>
+    <div class="step-progress" id="step-progress"></div>
+    <div class="step-label" id="step-label">Passo 1/4</div>
+    <div class="xp-badge" style="font-size:13px;">⭐ <span id="nav-xp">0</span></div>
+  </nav>
+
+  <div class="module-container">
+    <div id="step-content"></div>
+  </div>
+
+  <div class="module-footer">
+    <div class="module-footer-info"><span id="footer-step">Passo 1 de 4</span></div>
+    <div class="module-footer-actions">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()" style="display:none;">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Próximo →</button>
+    </div>
+  </div>
+
+  <button class="help-fab" onclick="showHelp()">❓</button>
+  <div class="modal-custom" id="help-modal">
+    <div class="modal-box">
+      <div class="modal-box-header">
+        <h3 id="help-title">❓ Ajuda</h3>
+        <button class="modal-close" onclick="closeHelp()">✕</button>
+      </div>
+      <div class="modal-box-body" id="help-body"></div>
+      <div class="modal-box-footer"><button class="btn btn-primary" onclick="closeHelp()">Entendi!</button></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../js/app.js"></script>
+  <script>
+    const MODULE_ID = 8;
+    let currentStep = 0;
+    let quizAnswers = {};
+    let quizScore = 0;
+
+    // QUIZ
+    const QUIZ_QUESTIONS = [
+      { question: 'Qual ferramenta é a mais indicada para redigir um contrato ou um currículo?', options: ['Excel / Google Sheets', 'Word / Google Docs', 'PowerPoint / Google Slides', 'Bloco de Notas'], correct: 1, explanation: 'O Word (ou Google Docs) é um Processador de Texto, feito exatamente para documentos complexos, com formatação, margens e imagens.' },
+      { question: 'Por que o formato PDF é tão usado para enviar documentos (como boletos ou currículos)?', options: ['Porque é o único formato que aceita fotos.', 'Porque ele "trava" o design do documento. Quem recebe vê exatamente o que você fez, e não consegue editar o texto facilmente.', 'Porque ele traduz o texto automaticamente.', 'Porque ele sempre deixa o arquivo menor.'], correct: 1, explanation: 'PDF significa Formato de Documento Portátil. Ele garante que a formatação não vai quebrar se a pessoa abrir no celular ou em outro computador.' },
+      { question: 'Se você precisa controlar os gastos mensais da sua casa fazendo contas automáticas, qual programa usar?', options: ['Word', 'PowerPoint', 'Excel / Planilhas Google', 'WhatsApp'], correct: 2, explanation: 'O Excel (Planilha) é a ferramenta certa para tabelas, números, controle financeiro e cálculos automáticos.' },
+      { question: 'O que significa criar um documento "na nuvem" (ex: Google Docs)?', options: ['Que o documento só funciona em dias de chuva.', 'Que o documento está salvo na internet e você pode abrir de qualquer computador, sem precisar de um pen drive.', 'Que o documento vai sumir depois de 24 horas.', 'Que você precisa imprimir o documento para salvar.'], correct: 1, explanation: 'Ferramentas na nuvem salvam seus arquivos em servidores da internet, permitindo acesso de qualquer lugar.' },
+    ];
+
+    const STEPS = [
+      { title:'📝 Pacote Office e Similares', render: renderStep1 },
+      { title:'📄 O Mundo dos PDFs', render: renderStep2 },
+      { title:'☁️ Ferramentas na Nuvem', render: renderStep3 },
+      { title:'✅ Quiz Final', render: renderStep4 },
+    ];
+
+    // ===== PASSO 1 =====
+    function renderStep1() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#D97706,#B45309);">
+            <div class="hero-badge">📝 Produtividade — Passo 1 de 4</div>
+            <h2>O "Trio de Ouro" do Escritório</h2>
+            <p>Seja no trabalho ou nos estudos, você precisa dominar estes três tipos de programas.</p>
+          </div>
+
+          <div class="tools-grid">
+            <div class="tool-card">
+              <div class="tool-icon icon-word"><i class="fa-solid fa-file-word"></i></div>
+              <h3 style="margin-bottom:8px;">Processadores de Texto</h3>
+              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:12px;">
+                Para criar documentos, currículos, contratos e relatórios. Você pode formatar letras, mudar cores e adicionar fotos.
+              </p>
+              <div style="font-size:12px; font-weight:bold; color:var(--text-muted); background:#F1F5F9; padding:4px 12px; border-radius:12px;">
+                Ex: Microsoft Word, Google Docs
+              </div>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-icon icon-excel"><i class="fa-solid fa-file-excel"></i></div>
+              <h3 style="margin-bottom:8px;">Planilhas Eletrônicas</h3>
+              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:12px;">
+                Para lidar com números. Tabelas que fazem contas sozinhas! Ótimo para controle financeiro, listas de alunos ou estoques.
+              </p>
+              <div style="font-size:12px; font-weight:bold; color:var(--text-muted); background:#F1F5F9; padding:4px 12px; border-radius:12px;">
+                Ex: Microsoft Excel, Google Sheets
+              </div>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-icon icon-ppt"><i class="fa-solid fa-file-powerpoint"></i></div>
+              <h3 style="margin-bottom:8px;">Apresentações</h3>
+              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:12px;">
+                Para mostrar suas ideias em um telão ou em reuniões online. Você cria "slides" com tópicos, imagens e animações.
+              </p>
+              <div style="font-size:12px; font-weight:bold; color:var(--text-muted); background:#F1F5F9; padding:4px 12px; border-radius:12px;">
+                Ex: PowerPoint, Google Slides
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== PASSO 2 =====
+    function renderStep2() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#EF4444,#B91C1C);">
+            <div class="hero-badge">📄 Documentos — Passo 2 de 4</div>
+            <h2>O Formato PDF</h2>
+            <p>O melhor amigo de quem precisa enviar um documento importante.</p>
+          </div>
+
+          <div style="margin-top:24px; display:flex; gap:24px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:300px;">
+              <h3 style="font-size:22px; margin-bottom:16px;">Por que o PDF é tão famoso?</h3>
+              <p style="color:var(--text-secondary); line-height:1.6; margin-bottom:16px;">
+                Imagine que você fez um currículo lindo no Word, usando uma fonte especial que você baixou. Você envia o arquivo do Word (.docx) para uma empresa.
+              </p>
+              <p style="color:var(--text-secondary); line-height:1.6; margin-bottom:16px;">
+                O computador da empresa não tem a sua fonte especial. Quando eles abrem, o currículo fica todo "quebrado", desconfigurado, e textos pulam para a página seguinte.
+              </p>
+              <div style="background:#FEF2F2; border-left:4px solid #EF4444; padding:16px; border-radius:0 8px 8px 0;">
+                <p style="color:#991B1B; font-weight:bold; margin-bottom:8px;">O PDF resolve isso!</p>
+                <p style="color:#7F1D1D; font-size:14px;">
+                  Ele "tira uma foto" do seu documento. O formato fica "congelado". A pessoa que recebe vai ver EXATAMENTE a mesma coisa que você viu, seja no celular, no Mac ou no Windows.
+                </p>
+              </div>
+            </div>
+
+            <div class="card" style="flex:0 0 300px;">
+              <div class="card-body" style="text-align:center;">
+                <div class="tool-icon icon-pdf" style="margin:0 auto 16px;"><i class="fa-solid fa-file-pdf"></i></div>
+                <h4 style="margin-bottom:16px;">Regra de Ouro:</h4>
+                <div style="text-align:left; color:var(--text-secondary); font-size:14px; line-height:1.5;">
+                  <strong>1.</strong> Escreva o documento no Word.<br><br>
+                  <strong>2.</strong> Quando estiver pronto para enviar, clique em <code>Arquivo > Salvar como</code> e escolha <strong>PDF</strong>.<br><br>
+                  <strong>3.</strong> Envie o PDF por e-mail ou WhatsApp!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== PASSO 3 =====
+    function renderStep3() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);">
+            <div class="hero-badge">☁️ Tecnologia — Passo 3 de 4</div>
+            <h2>A Revolução da Nuvem (Cloud)</h2>
+            <p>Trabalhando de qualquer lugar, sem instalar nada.</p>
+          </div>
+
+          <div class="compare-box">
+            <div class="compare-side" style="border-right: 1px solid #E2E8F0; padding-right:24px;">
+              <h4 style="color:#475569;"><i class="fa-solid fa-computer"></i> Programas Instalados</h4>
+              <ul class="compare-list">
+                <li><i class="fa-solid fa-xmark" style="color:#EF4444;"></i> O programa fica pesado no seu computador.</li>
+                <li><i class="fa-solid fa-xmark" style="color:#EF4444;"></i> Você precisa comprar uma licença (cara).</li>
+                <li><i class="fa-solid fa-xmark" style="color:#EF4444;"></i> Se não salvar toda hora e faltar energia, perde tudo.</li>
+                <li><i class="fa-solid fa-xmark" style="color:#EF4444;"></i> O arquivo fica preso no seu HD. Precisa de pen drive para levar a outro PC.</li>
+              </ul>
+            </div>
+
+            <div class="compare-side" style="padding-left:24px;">
+              <h4 style="color:#2563EB;"><i class="fa-solid fa-cloud"></i> Ferramentas na Nuvem</h4>
+              <ul class="compare-list">
+                <li><i class="fa-solid fa-check" style="color:#10B981;"></i> Funciona direto no navegador (Chrome). Não instala nada.</li>
+                <li><i class="fa-solid fa-check" style="color:#10B981;"></i> Maioria é gratuita (Google Docs, Google Sheets).</li>
+                <li><i class="fa-solid fa-check" style="color:#10B981;"></i> Salva automaticamente a cada letra que você digita.</li>
+                <li><i class="fa-solid fa-check" style="color:#10B981;"></i> Você entra no site, põe seu e-mail e seus arquivos estão lá, até no celular!</li>
+                <li><i class="fa-solid fa-check" style="color:#10B981;"></i> Várias pessoas podem editar o mesmo arquivo ao mesmo tempo.</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    // ===== PASSO 4: QUIZ E FINAL =====
+    function renderStep4() {
+      const questionIndex = Object.keys(quizAnswers).length;
+      if (questionIndex >= QUIZ_QUESTIONS.length) return renderQuizResult();
+      const q = QUIZ_QUESTIONS[questionIndex];
+      const letters = ['A','B','C','D'];
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#059669,#047857);">
+            <div class="hero-badge">✅ Quiz — Passo 4 de 4</div>
+            <h2>O Último Teste!</h2>
+          </div>
+          <div style="max-width:620px;margin:0 auto;">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(questionIndex/QUIZ_QUESTIONS.length)*100}%"></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${questionIndex+1}/${QUIZ_QUESTIONS.length}</span>
+            </div>
+            <div class="card">
+              <div class="card-body" style="padding:28px;">
+                <div class="quiz-question">${q.question}</div>
+                <div class="quiz-options">
+                  ${q.options.map((opt,i)=>`
+                    <div class="quiz-option" id="option-${i}" onclick="answerQuiz(${questionIndex},${i})">
+                      <div class="quiz-letter">${letters[i]}</div><span>${opt}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback"><span class="quiz-feedback-icon"></span><div class="quiz-feedback-text"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuizResult() {
+      const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+      const stars = pct>=80?3:pct>=60?2:1;
+      return `
+        <div class="module-section" style="text-align:center;">
+          <div class="card" style="max-width:600px;margin:40px auto;padding:40px 32px;">
+            <div style="font-size:80px;margin-bottom:16px;">🎓</div>
+            <h2 style="font-size:32px; color:var(--primary-dark);">Você completou o curso!</h2>
+            <div style="font-size:48px;font-weight:900;font-family:var(--font-heading);color:var(--primary);margin:16px 0;">${pct}%</div>
+            <div style="color:var(--text-secondary);margin-bottom:20px; font-size:18px;">
+              Meus parabéns! Você completou os 8 módulos da Jornada da Informática Básica!
+            </div>
+            <div class="stars-row">${Array.from({length:3},(_,i)=>`<span class="star-item" style="color:${i<stars?'#F59E0B':'#E2E8F0'}">${i<stars?'⭐':'☆'}</span>`).join('')}</div>
+            
+            <div style="margin-top:32px; padding:20px; background:#F0FDF4; border:1px dashed #22C55E; border-radius:8px;">
+              <h3 style="color:#166534; margin-bottom:8px;">🎉 O seu Certificado está pronto!</h3>
+              <p style="color:#15803D; font-size:15px; margin-bottom:16px;">Volte para o Dashboard para ver a surpresa.</p>
+              <button class="btn btn-success btn-lg" onclick="finishCourse()">Voltar ao Dashboard e Pegar Certificado 🚀</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // LÓGICA BASE
+    function answerQuiz(qIdx, optIdx) {
+      const q = QUIZ_QUESTIONS[qIdx];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      const correct = optIdx === q.correct;
+      if (correct) quizScore++;
+      quizAnswers[qIdx] = { selected: optIdx, correct: q.correct };
+      document.getElementById(`option-${optIdx}`).classList.add(correct?'correct':'incorrect');
+      if (!correct) document.getElementById(`option-${q.correct}`).classList.add('correct');
+      const fb = document.getElementById('quiz-feedback');
+      fb.innerHTML = `<span class="quiz-feedback-icon">${correct?'✅':'❌'}</span><div class="quiz-feedback-text"><strong>${correct?'Correto! 🎉':'Oops!'}</strong><div style="margin-top:4px;">${q.explanation}</div></div>`;
+      fb.className = `quiz-feedback show ${correct?'correct':'incorrect'}`;
+      App.playSound(correct?'correct':'incorrect');
+      setTimeout(renderCurrentStep, 2200);
+    }
+
+    function finishCourse() {
+      const pct = Math.round((quizScore/QUIZ_QUESTIONS.length)*100);
+      App.saveQuizScore(MODULE_ID, pct);
+      App.completeModule(MODULE_ID, pct);
+      // Aqui forçamos a ida pro dashboard pra ele ver o modal de certificado
+      window.location.href = '../dashboard.html';
+    }
+
+    function renderCurrentStep() {
+      document.getElementById('step-content').innerHTML = STEPS[currentStep].render();
+      let html = '';
+      STEPS.forEach((_,i) => {
+        html += `<div class="step-dot ${i<currentStep?'done':i===currentStep?'active':'pending'}"></div>`;
+        if (i<STEPS.length-1) html += `<div class="step-line ${i<currentStep?'done':''}"></div>`;
+      });
+      document.getElementById('step-progress').innerHTML = html;
+      document.getElementById('step-label').textContent = `Passo ${currentStep+1}/${STEPS.length}`;
+      document.getElementById('footer-step').textContent = `Passo ${currentStep+1} de ${STEPS.length}: ${STEPS[currentStep].title}`;
+      document.getElementById('btn-prev').style.display = currentStep>0?'inline-flex':'none';
+      document.getElementById('btn-next').style.display = (currentStep===3 && Object.keys(quizAnswers).length>=QUIZ_QUESTIONS.length)?'none':'inline-flex';
+      const state = App.loadState();
+      if (state) document.getElementById('nav-xp').textContent = state.totalXP||0;
+    }
+    function nextStep() {
+      if (currentStep < STEPS.length-1) {
+        if (currentStep < 2) App.completeStep(MODULE_ID, currentStep, 10);
+        currentStep++;
+        renderCurrentStep();
+        window.scrollTo({top:0,behavior:'smooth'});
+        App.playSound('click');
+      }
+    }
+    function prevStep() { if (currentStep>0) { currentStep--; renderCurrentStep(); window.scrollTo({top:0,behavior:'smooth'}); } }
+
+    const HELPS = [
+      {title:'❓ Word, Excel, Powerpoint',body:'Word = Textos. Excel = Contas e Tabelas. PowerPoint = Apresentações.'},
+      {title:'❓ PDF',body:'PDF trava o design. Use PDF quando quiser enviar algo pronto que não precisa mais ser editado por quem recebe.'},
+      {title:'❓ Nuvem',body:'Em vez de instalar o Word no PC, você abre o Google Docs pelo navegador (como se fosse abrir o Facebook) e digita lá. Fica tudo salvo na internet.'},
+      {title:'❓ Quiz',body:'Responda as perguntas baseadas no que aprendeu. É o último teste!'}
+    ];
+    function showHelp() {
+      const h = HELPS[currentStep]||HELPS[0];
+      document.getElementById('help-title').innerHTML = h.title;
+      document.getElementById('help-body').innerHTML = h.body;
+      document.getElementById('help-modal').classList.add('active');
+    }
+    function closeHelp() { document.getElementById('help-modal').classList.remove('active'); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      App.requireStudent();
+      const progress = App.getModuleProgress(MODULE_ID);
+      currentStep = Math.min(progress.currentStep||0, STEPS.length-1);
+      if (progress.quizScore>0) { for(let i=0;i<QUIZ_QUESTIONS.length;i++) quizAnswers[i]=true; quizScore=Math.round((progress.quizScore/100)*QUIZ_QUESTIONS.length); }
+      renderCurrentStep();
+    });
+  </script>
+</body>
+</html>

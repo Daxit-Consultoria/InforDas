@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Módulo 3 — Atalhos de Teclado</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <style>
+    body { background: var(--bg); }
+
+    /* ===== ATALHOS ===== */
+    .shortcut-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      transition: var(--transition);
+      margin-bottom: 16px;
+    }
+    .shortcut-card:hover {
+      transform: translateX(8px);
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow-md);
+    }
+    .shortcut-keys {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .kbd-key {
+      background: #1E293B;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 4px 0 #0F172A;
+      display: inline-block;
+    }
+    .kbd-plus {
+      color: var(--text-muted);
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .shortcut-info { flex: 1; }
+    .shortcut-name {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: var(--font-heading);
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+    .shortcut-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    
+    /* ===== SIMULADOR DE ATALHOS ===== */
+    .simulator-container {
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border);
+      overflow: hidden;
+      margin-top: 24px;
+    }
+    .simulator-header {
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .simulator-title {
+      font-weight: 800;
+      font-family: var(--font-heading);
+      color: var(--primary-dark);
+      font-size: 18px;
+    }
+    .simulator-body {
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      align-items: center;
+    }
+    .mission-box {
+      background: var(--primary-ultra-light);
+      border: 1px dashed var(--primary);
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+    }
+    .mission-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+    .target-shortcut {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    
+    /* Editor Falso */
+    .fake-editor {
+      width: 100%;
+      max-width: 500px;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 16px;
+      color: #334155;
+      min-height: 100px;
+      white-space: pre-wrap;
+      position: relative;
+    }
+    .fake-editor.selected {
+      background: #DBEAFE;
+      color: #1E40AF;
+    }
+    
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .status-pill.waiting { background: #FEF3C7; color: #92400E; }
+    .status-pill.success { background: #DCFCE7; color: #166534; }
+    .status-pill.error   { background: #FEE2E2; color: #991B1B; }
+
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="module-nav">
+    <a href="../dashboard.html" style="font-size:22px;text-decoration:none;" title="Dashboard">🏠</a>
+    <div class="module-nav-title">⚡ Módulo 3 — Atalhos de Teclado</div>
+    <div class="step-progress" id="step-progress"></div>
+    <div class="step-label" id="step-label">Passo 1/5</div>
+    <div class="xp-badge" style="font-size:13px;">⭐ <span id="nav-xp">0</span></div>
+  </nav>
+
+  <div class="module-container">
+    <div id="step-content"></div>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="module-footer">
+    <div class="module-footer-info"><span id="footer-step">Passo 1 de 5</span></div>
+    <div class="module-footer-actions">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()" style="display:none;">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Próximo →</button>
+    </div>
+  </div>
+
+  <button class="help-fab" onclick="showHelp()" title="Como Fazer?">❓</button>
+  <div class="modal-custom" id="help-modal">
+    <div class="modal-box">
+      <div class="modal-box-header">
+        <h3 id="help-title">❓ Ajuda</h3>
+        <button class="modal-close" onclick="closeHelp()">✕</button>
+      </div>
+      <div class="modal-box-body" id="help-body"></div>
+      <div class="modal-box-footer">
+        <button class="btn btn-primary" onclick="closeHelp()">Entendi! 👍</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../js/app.js"></script>
+  <script>
+    const MODULE_ID = 3;
+    let currentStep = 0;
+    let quizAnswers = {};
+    let quizScore = 0;
+    let stepUnlocked = false;
+
+    // Estado do Simulador
+    let simMissions = [
+      { id: 'select_all', text: 'Selecione todo o texto', keys: ['Control', 'a'], targetKbd: ['Ctrl', 'A'], initText: 'Receita de Bolo:\n1. Ovos\n2. Farinha\n3. Açúcar', action: 'Selecionado!' },
+      { id: 'copy', text: 'Copie o texto selecionado', keys: ['Control', 'c'], targetKbd: ['Ctrl', 'C'], initText: 'Receita de Bolo:\n1. Ovos\n2. Farinha\n3. Açúcar', selected: true, action: 'Copiado!' },
+      { id: 'paste', text: 'Cole o texto', keys: ['Control', 'v'], targetKbd: ['Ctrl', 'V'], initText: 'Lista de Compras:\n', action: 'Colado!' },
+      { id: 'undo', text: 'Desfaça a última ação', keys: ['Control', 'z'], targetKbd: ['Ctrl', 'Z'], initText: 'Ops, apaguei tudo sem querer!', action: 'Desfeito!' },
+      { id: 'save', text: 'Salve o documento', keys: ['Control', 's'], targetKbd: ['Ctrl', 'S'], initText: 'Meu diário secreto...', action: 'Salvo!' },
+    ];
+    let currentMission = 0;
+    let listenerActive = false;
+
+    // QUIZ
+    const QUIZ_QUESTIONS = [
+      { question: 'Qual atalho é usado para COPIAR um texto ou arquivo?', options: ['Ctrl + X', 'Ctrl + C', 'Ctrl + V', 'Ctrl + Z'], correct: 1, explanation: 'Ctrl + C copia (Copy) o item selecionado para a área de transferência.' },
+      { question: 'Você apagou um texto importante por acidente. Qual atalho usar para DESFAZER?', options: ['Ctrl + A', 'Ctrl + Z', 'Ctrl + Y', 'Ctrl + D'], correct: 1, explanation: 'Ctrl + Z desfaz (Z de "Zebra", quer dizer, deu zebra, volta atrás!) a última ação.' },
+      { question: 'Qual a diferença entre Copiar (Ctrl+C) e Recortar (Ctrl+X)?', options: ['Não tem diferença.', 'Copiar remove o original, Recortar cria uma cópia.', 'Copiar mantém o original e faz uma cópia. Recortar move (remove o original).', 'Recortar só funciona com imagens.'], correct: 2, explanation: 'Ctrl + C (Copiar) duplica o item. Ctrl + X (Recortar) move o item de lugar, apagando do local original ao colar.' },
+      { question: 'Para que serve o atalho Alt + Tab?', options: ['Fechar a janela atual', 'Salvar o documento', 'Alternar entre janelas/programas abertos', 'Abrir o Menu Iniciar'], correct: 2, explanation: 'Alt + Tab é o atalho clássico para trocar rapidamente entre os programas que estão abertos.' },
+      { question: 'Como selecionar TODO o texto de um documento de uma vez?', options: ['Ctrl + S', 'Ctrl + T', 'Ctrl + A', 'Alt + A'], correct: 2, explanation: 'No Windows, Ctrl + A seleciona tudo (A de "All", que significa "Tudo" em inglês).' },
+      { question: 'Qual atalho salva o documento atual?', options: ['Ctrl + S', 'Ctrl + V', 'Alt + F4', 'Ctrl + N'], correct: 0, explanation: 'Ctrl + S vem da palavra "Save" (Salvar em inglês) e é o atalho universal para salvar.' },
+      { question: 'Você selecionou um texto e pressionou Ctrl + C. O que aconteceu?', options: ['O texto foi apagado', 'O texto foi copiado para a memória (Área de Transferência)', 'O texto ficou em negrito', 'O documento foi fechado'], correct: 1, explanation: 'O texto foi copiado. O próximo passo lógico seria usar Ctrl + V para colar o texto em outro lugar.' },
+      { question: 'Como se executa corretamente um atalho de teclado como Ctrl + Z?', options: ['Pressione C, T, R, L, o sinal de mais (+) e depois Z', 'Pressione Ctrl e solte, depois pressione Z', 'Mantenha pressionado o Ctrl, e dê um toque rápido na letra Z', 'Pressione todas as teclas ao mesmo tempo com muita força'], correct: 2, explanation: 'A maneira correta é manter a tecla modificadora (Ctrl) pressionada e dar um toque rápido na letra.' },
+      { question: 'Qual o atalho clássico para IMPRIMIR um documento?', options: ['Ctrl + I', 'Alt + I', 'Ctrl + P', 'Shift + P'], correct: 2, explanation: 'Ctrl + P vem de "Print" (Imprimir em inglês). Ele abre a tela de impressão na grande maioria dos programas.' },
+      { question: 'Ao recortar um arquivo com Ctrl + X e colar com Ctrl + V em outra pasta, o que acontece com o arquivo na pasta original?', options: ['Ele continua lá', 'Ele é apagado da pasta original e movido para a nova', 'Ele é duplicado', 'Ele é transformado em um atalho'], correct: 1, explanation: 'Diferente de copiar (Ctrl+C) que duplica, o recortar (Ctrl+X) MOVERÁ o arquivo para o novo destino.' }
+    ];
+
+    const STEPS = [
+      { title:'📖 O que são Atalhos?', render: renderStep1 },
+      { title:'✂️ Copiar, Colar e Recortar', render: renderStep2 },
+      { title:'🔄 Desfazer e Selecionar Tudo', render: renderStep3 },
+      { title:'🎮 Prática Interativa', render: renderStep4 },
+      { title:'✅ Quiz Final', render: renderStep5 },
+    ];
+
+    // ===== PASSO 1 =====
+    function renderStep1() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#F59E0B,#D97706);">
+            <div class="hero-badge">📖 Teoria — Passo 1 de 5</div>
+            <h2>O que são Atalhos de Teclado?</h2>
+            <p>Atalhos são combinações de teclas que realizam tarefas que normalmente precisariam de vários cliques no mouse.</p>
+          </div>
+
+          <div style="display:flex; gap:24px; align-items:center; margin-top:32px; flex-wrap:wrap; justify-content:center;">
+            <div class="card" style="flex:1; min-width:300px;">
+              <div class="card-body">
+                <div style="font-size:40px; margin-bottom:16px;">⏱️</div>
+                <h3 style="margin-bottom:8px;">Por que usar?</h3>
+                <p style="color:var(--text-secondary); line-height:1.6;">
+                  Profissionais usam atalhos porque eles deixam o trabalho <strong>muito mais rápido</strong>. 
+                  Em vez de mover a mão para o mouse, procurar o menu, clicar em "Editar" e depois em "Copiar", você só aperta duas teclas!
+                </p>
+              </div>
+            </div>
+
+            <div class="card" style="flex:1; min-width:300px;">
+              <div class="card-body">
+                <div style="font-size:40px; margin-bottom:16px;">🔑</div>
+                <h3 style="margin-bottom:8px;">Como funcionam?</h3>
+                <p style="color:var(--text-secondary); line-height:1.6;">
+                  Geralmente envolvem uma tecla modificadora (como <strong>Ctrl</strong>, <strong>Alt</strong> ou <strong>Shift</strong>) junto com uma letra.<br>
+                  <em>Regra de ouro: Mantenha pressionada a primeira tecla e dê um toque na segunda!</em>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box tip" style="margin-top:24px;">
+            <div class="info-box-title">💡 De onde vêm as letras?</div>
+            <div class="info-box-body">
+              A maioria dos atalhos usa a primeira letra da palavra em inglês. <br>
+              <strong>Ctrl + C</strong> = <strong>C</strong>opy (Copiar)<br>
+              <strong>Ctrl + S</strong> = <strong>S</strong>ave (Salvar)<br>
+              <strong>Ctrl + P</strong> = <strong>P</strong>rint (Imprimir)
+            </div>
+          </div>
+          ${!stepUnlocked ? `
+            <div style="text-align:center; margin-top:32px;">
+              <button class="btn btn-outline" onclick="this.style.display='none'; unlockNext();" style="border-width:2px; font-weight:bold;">✅ Marcar como lido e entendido</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ===== PASSO 2 =====
+    function renderStep2() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#3B82F6,#2563EB);">
+            <div class="hero-badge">✂️ Essenciais — Passo 2 de 5</div>
+            <h2>A Trindade: Copiar, Recortar e Colar</h2>
+            <p>Estes são os atalhos mais famosos do mundo. Aprenda-os e mude sua vida!</p>
+          </div>
+
+          <div class="stagger" style="margin-top:24px;">
+            <div class="shortcut-card animate-fadeInUp">
+              <div class="shortcut-keys">
+                <div class="kbd-key">Ctrl</div>
+                <div class="kbd-plus">+</div>
+                <div class="kbd-key">C</div>
+              </div>
+              <div class="shortcut-info">
+                <div class="shortcut-name">Copiar (Copy)</div>
+                <div class="shortcut-desc">Faz uma cópia do texto ou arquivo selecionado e guarda na memória (Área de Transferência). O original não é apagado.</div>
+              </div>
+              <div style="font-size:40px; opacity:0.2;">📄📄</div>
+            </div>
+
+            <div class="shortcut-card animate-fadeInUp">
+              <div class="shortcut-keys">
+                <div class="kbd-key">Ctrl</div>
+                <div class="kbd-plus">+</div>
+                <div class="kbd-key">X</div>
+              </div>
+              <div class="shortcut-info">
+                <div class="shortcut-name">Recortar (Cut)</div>
+                <div class="shortcut-desc">Remove o texto ou arquivo do local original e guarda na memória. Pense nisso como "Mover" (o X lembra uma tesoura ✂️).</div>
+              </div>
+              <div style="font-size:40px; opacity:0.2;">✂️</div>
+            </div>
+
+            <div class="shortcut-card animate-fadeInUp">
+              <div class="shortcut-keys">
+                <div class="kbd-key">Ctrl</div>
+                <div class="kbd-plus">+</div>
+                <div class="kbd-key">V</div>
+              </div>
+              <div class="shortcut-info">
+                <div class="shortcut-name">Colar (Paste)</div>
+                <div class="shortcut-desc">Pega o que você Copiou ou Recortou e "cola" no local atual do cursor. (O V parece um tubo de cola virado para baixo!).</div>
+              </div>
+              <div style="font-size:40px; opacity:0.2;">📋</div>
+            </div>
+          </div>
+          ${!stepUnlocked ? `
+            <div style="text-align:center; margin-top:32px;">
+              <button class="btn btn-outline" onclick="this.style.display='none'; unlockNext();" style="border-width:2px; font-weight:bold;">✅ Marcar como lido e entendido</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ===== PASSO 3 =====
+    function renderStep3() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);">
+            <div class="hero-badge">🔄 Essenciais — Passo 3 de 5</div>
+            <h2>Desfazer, Salvar e Selecionar</h2>
+            <p>Seus melhores amigos para corrigir erros e trabalhar mais rápido.</p>
+          </div>
+
+          <div class="stagger" style="margin-top:24px;">
+            <div class="shortcut-card animate-fadeInUp">
+              <div class="shortcut-keys">
+                <div class="kbd-key">Ctrl</div>
+                <div class="kbd-plus">+</div>
+                <div class="kbd-key">Z</div>
+              </div>
+              <div class="shortcut-info">
+                <div class="shortcut-name">Desfazer (Undo)</div>
+                <div class="shortcut-desc">Sua máquina do tempo! Apagou o que não devia? Fez besteira? Pressione Ctrl+Z e a última ação será revertida.</div>
+              </div>
+              <div style="font-size:40px; opacity:0.2;">↩️</div>
+            </div>
+
+            <div class="shortcut-card animate-fadeInUp">
+              <div class="shortcut-keys">
+                <div class="kbd-key">Ctrl</div>
+                <div class="kbd-plus">+</div>
+                <div class="kbd-key">A</div>
+              </div>
+              <div class="shortcut-info">
+                <div class="shortcut-name">Selecionar Tudo (All)</div>
+                <div class="shortcut-desc">Seleciona TODO o texto de um documento ou TODOS os arquivos de uma pasta instantaneamente.</div>
+              </div>
+              <div style="font-size:40px; opacity:0.2;">🔲</div>
+            </div>
+
+            <div class="shortcut-card animate-fadeInUp">
+              <div class="shortcut-keys">
+                <div class="kbd-key">Ctrl</div>
+                <div class="kbd-plus">+</div>
+                <div class="kbd-key">S</div>
+              </div>
+              <div class="shortcut-info">
+                <div class="shortcut-name">Salvar (Save)</div>
+                <div class="shortcut-desc">Salva o arquivo atual. Acostume-se a apertar esse atalho a cada 10 minutos para não perder seu trabalho!</div>
+              </div>
+              <div style="font-size:40px; opacity:0.2;">💾</div>
+            </div>
+          </div>
+          ${!stepUnlocked ? `
+            <div style="text-align:center; margin-top:32px;">
+              <button class="btn btn-outline" onclick="this.style.display='none'; unlockNext();" style="border-width:2px; font-weight:bold;">✅ Marcar como lido e entendido</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ===== PASSO 4 =====
+    function renderStep4() {
+      listenerActive = true;
+      currentMission = 0;
+      setTimeout(renderSimulator, 0);
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#10B981,#059669);">
+            <div class="hero-badge">🎮 Prática — Passo 4 de 5</div>
+            <h2>Mão na Massa!</h2>
+            <p>Pressione os atalhos reais no seu teclado para completar as missões.</p>
+          </div>
+
+          <div class="simulator-container">
+            <div class="simulator-header">
+              <div class="simulator-title">Simulador de Atalhos</div>
+              <div class="status-pill waiting" id="sim-status">⏳ Aguardando...</div>
+            </div>
+            <div class="simulator-body">
+              <div class="mission-box">
+                <div class="mission-text" id="sim-mission-text">Missão X</div>
+                <div class="target-shortcut" id="sim-mission-kbd"></div>
+              </div>
+              
+              <div class="fake-editor" id="sim-editor"></div>
+              
+              <div style="font-size:13px; color:var(--text-muted); display:flex; gap:8px; align-items:center;">
+                <span>Pressione as teclas no seu teclado físico:</span>
+                <span style="display:inline-block; width:12px; height:12px; background:#EF4444; border-radius:50%; box-shadow:0 0 8px #EF4444;" id="key-indicator"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSimulator() {
+      if(currentMission >= simMissions.length) {
+        unlockNext();
+        document.getElementById('step-content').innerHTML = `
+          <div class="module-section" style="text-align:center; padding:60px 20px;">
+            <div style="font-size:80px; margin-bottom:20px;">🎉</div>
+            <h2 style="font-size:28px; color:var(--success-dark); margin-bottom:12px;">Simulador Concluído!</h2>
+            <p style="font-size:16px; color:var(--text-secondary); margin-bottom:32px;">Você dominou os atalhos de teclado principais. Excelente trabalho!</p>
+            <button class="btn btn-primary" onclick="nextStep()">Ir para o Quiz Final →</button>
+          </div>
+        `;
+        App.completeStep(MODULE_ID, 3, 20);
+        return;
+      }
+
+      const m = simMissions[currentMission];
+      document.getElementById('sim-mission-text').textContent = `${currentMission+1}. ${m.text}`;
+      
+      const kbdHtml = m.targetKbd.map((k,i) => `
+        <div class="kbd-key">${k}</div>
+        ${i < m.targetKbd.length-1 ? '<div class="kbd-plus">+</div>' : ''}
+      `).join('');
+      document.getElementById('sim-mission-kbd').innerHTML = kbdHtml;
+
+      const editor = document.getElementById('sim-editor');
+      editor.textContent = m.initText;
+      if (m.selected) {
+        editor.classList.add('selected');
+      } else {
+        editor.classList.remove('selected');
+      }
+
+      document.getElementById('sim-status').className = 'status-pill waiting';
+      document.getElementById('sim-status').innerHTML = '⏳ Pressione o atalho...';
+      document.getElementById('key-indicator').style.background = '#EF4444';
+      document.getElementById('key-indicator').style.boxShadow = '0 0 8px #EF4444';
+    }
+
+    // Captura do atalho
+    let ctrlPressed = false;
+    document.addEventListener('keydown', (e) => {
+      if (!listenerActive || currentStep !== 3) return;
+      if (currentMission >= simMissions.length) return;
+
+      // Impede atalhos do navegador que podem atrapalhar (Ctrl+S, Ctrl+A)
+      if (e.ctrlKey && ['s', 'a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+      }
+
+      const m = simMissions[currentMission];
+      
+      // Luz vermelha para verde ao pressionar Ctrl
+      if (e.key === 'Control') {
+        ctrlPressed = true;
+        document.getElementById('key-indicator').style.background = '#F59E0B'; // Amarelo
+        document.getElementById('key-indicator').style.boxShadow = '0 0 8px #F59E0B';
+      }
+
+      // Verifica se bate o atalho
+      if (e.ctrlKey && e.key.toLowerCase() === m.keys[1].toLowerCase()) {
+        document.getElementById('key-indicator').style.background = '#10B981'; // Verde
+        document.getElementById('key-indicator').style.boxShadow = '0 0 8px #10B981';
+        
+        document.getElementById('sim-status').className = 'status-pill success';
+        document.getElementById('sim-status').innerHTML = `✅ ${m.action}`;
+        App.playSound('correct');
+
+        // Efeitos no editor
+        const ed = document.getElementById('sim-editor');
+        if (m.id === 'select_all') ed.classList.add('selected');
+        if (m.id === 'copy') { ed.style.opacity = 0.5; setTimeout(()=>ed.style.opacity=1,200); }
+        if (m.id === 'paste') ed.textContent += 'Receita de Bolo:\n1. Ovos\n2. Farinha\n3. Açúcar';
+        if (m.id === 'undo') ed.textContent = '...texto original restaurado...';
+        if (m.id === 'save') ed.style.border = '2px solid #10B981';
+
+        setTimeout(() => {
+          currentMission++;
+          renderSimulator();
+        }, 1500);
+      } else if (e.ctrlKey && e.key !== 'Control') {
+        // Errou o atalho
+        App.playSound('incorrect');
+        const st = document.getElementById('sim-status');
+        st.className = 'status-pill error';
+        st.innerHTML = '❌ Atalho incorreto';
+        setTimeout(() => {
+          if (document.getElementById('sim-status').classList.contains('error')) {
+            document.getElementById('sim-status').className = 'status-pill waiting';
+            document.getElementById('sim-status').innerHTML = '⏳ Tente novamente...';
+          }
+        }, 1500);
+      }
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'Control') {
+        ctrlPressed = false;
+        const ind = document.getElementById('key-indicator');
+        if (ind) {
+          ind.style.background = '#EF4444';
+          ind.style.boxShadow = '0 0 8px #EF4444';
+        }
+      }
+    });
+
+
+    // ===== PASSO 5 =====
+    function renderStep5() {
+      listenerActive = false;
+      const questionIndex = Object.keys(quizAnswers).length;
+      if (questionIndex >= QUIZ_QUESTIONS.length) return renderQuizResult();
+      const q = QUIZ_QUESTIONS[questionIndex];
+      const letters = ['A','B','C','D'];
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#059669,#047857);">
+            <div class="hero-badge">✅ Quiz — Passo 5 de 5</div>
+            <h2>Teste seus Atalhos!</h2>
+          </div>
+          <div style="max-width:620px;margin:0 auto;">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(questionIndex/QUIZ_QUESTIONS.length)*100}%"></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${questionIndex+1}/${QUIZ_QUESTIONS.length}</span>
+            </div>
+            <div class="card">
+              <div class="card-body" style="padding:28px;">
+                <div class="quiz-question">${q.question}</div>
+                <div class="quiz-options">
+                  ${q.options.map((opt,i)=>`
+                    <div class="quiz-option" id="option-${i}" onclick="answerQuiz(${questionIndex},${i})">
+                      <div class="quiz-letter">${letters[i]}</div><span>${opt}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback"><span class="quiz-feedback-icon"></span><div class="quiz-feedback-text"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuizResult() {
+      const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+      const stars = pct>=80?3:pct>=60?2:1;
+      return `
+        <div class="module-section" style="text-align:center;">
+          <div class="card" style="max-width:500px;margin:40px auto;padding:40px 32px;">
+            <div style="font-size:72px;margin-bottom:16px;">${pct>=80?'🏆':pct>=60?'🌟':'📚'}</div>
+            <h2>${pct>=80?'Mestre dos Atalhos!':pct>=60?'Muito Bem!':'Continue Praticando!'}</h2>
+            <div style="font-size:48px;font-weight:900;font-family:var(--font-heading);color:var(--primary);margin:16px 0;">${pct}%</div>
+            <div style="color:var(--text-secondary);margin-bottom:20px;">Acertou ${quizScore} de ${QUIZ_QUESTIONS.length}</div>
+            <div class="stars-row">${Array.from({length:3},(_,i)=>`<span class="star-item" style="color:${i<stars?'#F59E0B':'#E2E8F0'}">${i<stars?'⭐':'☆'}</span>`).join('')}</div>
+            <button class="btn btn-success btn-lg" style="margin-top:24px;" onclick="finishModule()">🚀 Concluir Módulo! +60 XP</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // LÓGICA BASE
+    function answerQuiz(qIdx, optIdx) {
+      const q = QUIZ_QUESTIONS[qIdx];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      const correct = optIdx === q.correct;
+      if (correct) quizScore++;
+      quizAnswers[qIdx] = { selected: optIdx, correct: q.correct };
+      document.getElementById(`option-${optIdx}`).classList.add(correct?'correct':'incorrect');
+      if (!correct) document.getElementById(`option-${q.correct}`).classList.add('correct');
+      const fb = document.getElementById('quiz-feedback');
+      fb.innerHTML = `<span class="quiz-feedback-icon">${correct?'✅':'❌'}</span><div class="quiz-feedback-text"><strong>${correct?'Correto! 🎉':'Oops!'}</strong><div style="margin-top:4px;">${q.explanation}</div></div>`;
+      fb.className = `quiz-feedback show ${correct?'correct':'incorrect'}`;
+      App.playSound(correct?'correct':'incorrect');
+      setTimeout(renderCurrentStep, 2200);
+    }
+    function finishModule() {
+      const pct = Math.round((quizScore/QUIZ_QUESTIONS.length)*100);
+      App.saveQuizScore(MODULE_ID, pct);
+      App.completeModule(MODULE_ID, pct);
+      App.showModuleComplete(MODULE_ID, pct);
+    }
+    function unlockNext() {
+      stepUnlocked = true;
+      document.getElementById('btn-next').style.display = 'inline-flex';
+      App.playSound('correct');
+    }
+
+    function renderCurrentStep() {
+      const progress = App.getModuleProgress(MODULE_ID);
+      stepUnlocked = currentStep < (progress.currentStep || 0);
+
+      document.getElementById('step-content').innerHTML = STEPS[currentStep].render();
+      let html = '';
+      STEPS.forEach((_,i) => {
+        html += `<div class="step-dot ${i<currentStep?'done':i===currentStep?'active':'pending'}"></div>`;
+        if (i<STEPS.length-1) html += `<div class="step-line ${i<currentStep?'done':''}"></div>`;
+      });
+      document.getElementById('step-progress').innerHTML = html;
+      document.getElementById('step-label').textContent = `Passo ${currentStep+1}/${STEPS.length}`;
+      document.getElementById('footer-step').textContent = `Passo ${currentStep+1} de ${STEPS.length}: ${STEPS[currentStep].title}`;
+      document.getElementById('btn-prev').style.display = currentStep>0?'inline-flex':'none';
+      
+      if (currentStep === STEPS.length - 1) {
+        document.getElementById('btn-next').style.display = 'none';
+      } else {
+        document.getElementById('btn-next').style.display = stepUnlocked ? 'inline-flex' : 'none';
+      }
+      
+      const state = App.loadState();
+      if (state) document.getElementById('nav-xp').textContent = state.totalXP||0;
+    }
+    function nextStep() {
+      if (currentStep < STEPS.length-1) {
+        if (currentStep < 3) App.completeStep(MODULE_ID, currentStep, 10);
+        currentStep++;
+        renderCurrentStep();
+        window.scrollTo({top:0,behavior:'smooth'});
+        App.playSound('click');
+      }
+    }
+    function prevStep() { if (currentStep>0) { currentStep--; renderCurrentStep(); window.scrollTo({top:0,behavior:'smooth'}); } }
+
+    const HELPS = [
+      {title:'❓ O que são Atalhos?',body:'São combinações de teclas para fazer ações mais rápido que usando o mouse.'},
+      {title:'❓ Como faço o atalho?',body:'Pressione e SEGURE a primeira tecla (geralmente Ctrl), depois dê um toque rápido na letra. Exemplo: Segure Ctrl e aperte C.'},
+      {title:'❓ Selecionar e Desfazer',body:'Ctrl+Z salva vidas! Se você apagar um texto sem querer, aperte Ctrl+Z.'},
+      {title:'❓ Como uso o simulador?',body:'Olhe a missão na tela. Use o seu teclado REAL para apertar a combinação pedida. O sistema vai reconhecer automaticamente!'},
+      {title:'❓ Quiz',body:'Responda as perguntas baseadas no que aprendeu. Boa sorte!'}
+    ];
+    function showHelp() {
+      const h = HELPS[currentStep]||HELPS[0];
+      document.getElementById('help-title').innerHTML = h.title;
+      document.getElementById('help-body').innerHTML = h.body;
+      document.getElementById('help-modal').classList.add('active');
+    }
+    function closeHelp() { document.getElementById('help-modal').classList.remove('active'); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      App.requireStudent();
+      const progress = App.getModuleProgress(MODULE_ID);
+      currentStep = Math.min(progress.currentStep||0, STEPS.length-1);
+      if (progress.quizScore>0) { for(let i=0;i<QUIZ_QUESTIONS.length;i++) quizAnswers[i]=true; quizScore=Math.round((progress.quizScore/100)*QUIZ_QUESTIONS.length); }
+      renderCurrentStep();
+    });
+  </script>
+</body>
+</html>

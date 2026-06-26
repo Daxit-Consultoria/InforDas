@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Módulo 4 — Explorador de Arquivos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <style>
+    body { background: var(--bg); }
+
+    /* ===== EXPLORER SIMULADO ===== */
+    .win-explorer {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 450px;
+    }
+    .win-titlebar {
+      background: #F1F5F9;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #CBD5E1;
+      font-size: 13px;
+    }
+    .win-controls { display: flex; gap: 6px; }
+    .win-btn { width: 12px; height: 12px; border-radius: 50%; }
+    .win-btn.close { background: #EF4444; }
+    .win-btn.min { background: #F59E0B; }
+    .win-btn.max { background: #10B981; }
+
+    .win-toolbar {
+      padding: 8px 12px;
+      background: white;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .win-nav-btns { display: flex; gap: 8px; }
+    .win-nav-btn {
+      background: none; border: none; font-size: 16px; color: #64748B;
+      cursor: pointer; width: 28px; height: 28px; border-radius: 4px;
+    }
+    .win-nav-btn:hover { background: #F1F5F9; color: #0F172A; }
+    .win-nav-btn:disabled { color: #CBD5E1; cursor: not-allowed; background: none; }
+    
+    .win-address-bar {
+      flex: 1;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #334155;
+    }
+
+    .win-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .win-sidebar {
+      width: 200px;
+      background: #F8FAFC;
+      border-right: 1px solid #E2E8F0;
+      padding: 12px;
+      overflow-y: auto;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 8px; border-radius: 4px;
+      font-size: 13px; color: #334155; cursor: pointer;
+    }
+    .sidebar-item:hover { background: #E2E8F0; }
+    .sidebar-item.active { background: #DBEAFE; color: #1E40AF; font-weight: 600; }
+
+    .win-content {
+      flex: 1;
+      background: white;
+      padding: 16px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 16px;
+      align-content: start;
+    }
+
+    .file-item {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px; border-radius: 4px; cursor: pointer;
+      text-align: center; border: 1px solid transparent;
+    }
+    .file-item:hover { background: #F1F5F9; border-color: #E2E8F0; }
+    .file-item.selected { background: #DBEAFE; border-color: #93C5FD; }
+    .file-icon { font-size: 40px; margin-bottom: 8px; }
+    .file-name { font-size: 12px; color: #334155; word-break: break-word; }
+
+    /* Missão UI */
+    .mission-hud {
+      background: var(--primary-ultra-light);
+      border: 1px dashed var(--primary);
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="module-nav">
+    <a href="../dashboard.html" style="font-size:22px;text-decoration:none;" title="Dashboard">🏠</a>
+    <div class="module-nav-title">📁 Módulo 4 — Explorador de Arquivos</div>
+    <div class="step-progress" id="step-progress"></div>
+    <div class="step-label" id="step-label">Passo 1/4</div>
+    <div class="xp-badge" style="font-size:13px;">⭐ <span id="nav-xp">0</span></div>
+  </nav>
+
+  <div class="module-container">
+    <div id="step-content"></div>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="module-footer">
+    <div class="module-footer-info"><span id="footer-step">Passo 1 de 4</span></div>
+    <div class="module-footer-actions">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()" style="display:none;">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Próximo →</button>
+    </div>
+  </div>
+
+  <button class="help-fab" onclick="showHelp()" title="Como Fazer?">❓</button>
+  <div class="modal-custom" id="help-modal">
+    <div class="modal-box">
+      <div class="modal-box-header">
+        <h3 id="help-title">❓ Ajuda</h3>
+        <button class="modal-close" onclick="closeHelp()">✕</button>
+      </div>
+      <div class="modal-box-body" id="help-body"></div>
+      <div class="modal-box-footer">
+        <button class="btn btn-primary" onclick="closeHelp()">Entendi! 👍</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../js/app.js"></script>
+  <script>
+    const MODULE_ID = 4;
+    let currentStep = 0;
+    let quizAnswers = {};
+    let quizScore = 0;
+    let stepUnlocked = false;
+
+    // Estado do Explorador Simulado
+    const FILE_SYSTEM = {
+      'C:': {
+        name: 'Este Computador', icon: '💻', type: 'folder',
+        children: ['docs', 'pics', 'downloads']
+      },
+      'docs': {
+        name: 'Documentos', icon: '📂', type: 'folder', parent: 'C:',
+        children: ['trabalho', 'receita.docx', 'curriculo.pdf']
+      },
+      'pics': {
+        name: 'Imagens', icon: '🖼️', type: 'folder', parent: 'C:',
+        children: ['ferias', 'foto_perfil.jpg']
+      },
+      'downloads': {
+        name: 'Downloads', icon: '⬇️', type: 'folder', parent: 'C:',
+        children: ['instalador.exe', 'musica.mp3']
+      },
+      'trabalho': {
+        name: 'Trabalho', icon: '📂', type: 'folder', parent: 'docs',
+        children: ['relatorio_final.xlsx']
+      },
+      'ferias': {
+        name: 'Férias 2025', icon: '📂', type: 'folder', parent: 'pics',
+        children: ['praia.jpg', 'montanha.jpg']
+      },
+      // Arquivos (folhas)
+      'receita.docx': { name: 'Receita.docx', icon: '📝', type: 'file' },
+      'curriculo.pdf': { name: 'Currículo.pdf', icon: '📄', type: 'file' },
+      'foto_perfil.jpg': { name: 'Perfil.jpg', icon: '🖼️', type: 'file' },
+      'instalador.exe': { name: 'Instalador.exe', icon: '⚙️', type: 'file' },
+      'musica.mp3': { name: 'Musica.mp3', icon: '🎵', type: 'file' },
+      'relatorio_final.xlsx': { name: 'Relatório.xlsx', icon: '📊', type: 'file' },
+      'praia.jpg': { name: 'Praia.jpg', icon: '🏖️', type: 'file' },
+      'montanha.jpg': { name: 'Montanha.jpg', icon: '⛰️', type: 'file' },
+    };
+
+    let currentFolderId = 'C:';
+    let navHistory = ['C:'];
+    let historyPos = 0;
+    let currentMission = 0;
+    
+    const MISSIONS = [
+      { id: 'm1', targetFolder: 'ferias', targetFile: 'praia.jpg', text: '1. Encontre a foto da Praia na pasta Férias 2025' },
+      { id: 'm2', targetFolder: 'trabalho', targetFile: 'relatorio_final.xlsx', text: '2. Encontre o Relatório na pasta Trabalho' },
+      { id: 'm3', targetFolder: 'downloads', targetFile: 'instalador.exe', text: '3. Encontre o Instalador na pasta Downloads' }
+    ];
+
+    // QUIZ
+    const QUIZ_QUESTIONS = [
+      { question: 'O que é uma "Pasta" (ou Diretório) no computador?', options: ['Um programa que toca música', 'Um recipiente virtual usado para organizar e guardar arquivos', 'Um tipo de arquivo de texto', 'O cérebro do computador'], correct: 1, explanation: 'Uma pasta serve apenas para organizar arquivos, assim como uma pasta física em um escritório!' },
+      { question: 'No Windows, qual é a principal ferramenta usada para gerenciar arquivos e pastas?', options: ['Navegador de Internet', 'Painel de Controle', 'Explorador de Arquivos (Windows Explorer)', 'Menu Iniciar'], correct: 2, explanation: 'O Explorador de Arquivos (ícone de pastinha amarela) é onde você vê tudo que está salvo no seu computador.' },
+      { question: 'Se você quiser organizar suas fotos, qual é a melhor prática?', options: ['Deixar todas espalhadas na Área de Trabalho', 'Colocar tudo na Lixeira', 'Criar pastas com nomes específicos (Ex: "Férias 2025")', 'Apagar os arquivos e baixar de novo'], correct: 2, explanation: 'Criar pastas com nomes descritivos é a melhor forma de se organizar digitalmente.' },
+      { question: 'O que significa a extensão ".docx" no final de um nome de arquivo?', options: ['É uma música', 'É um documento de texto (ex: Word)', 'É uma imagem', 'É um vídeo'], correct: 1, explanation: 'As letras após o ponto chamam-se "extensão". ".docx" indica documento do Word. ".jpg" é imagem. ".mp3" é música.' },
+      { question: 'Como identificamos o tipo de um arquivo (se é foto, música, texto)?', options: ['Pelo tamanho do arquivo', 'Pela cor do ícone apenas', 'Pela sua extensão (como .mp3, .jpg, .docx)', 'Não tem como saber até abrir o arquivo'], correct: 2, explanation: 'A extensão do arquivo (as letras depois do ponto) diz ao Windows e a você qual é o formato e qual programa deve abri-lo.' },
+      { question: 'O que é o "Disco Local (C:)"?', options: ['Um CD antigo', 'A unidade principal de armazenamento (HD/SSD) onde o Windows e os arquivos são salvos', 'Uma pasta da internet', 'Um vírus de computador'], correct: 1, explanation: 'O C: é a "raiz" do seu computador. É o seu armazenamento principal onde o sistema e todos os seus arquivos residem.' },
+      { question: 'Se você arrastar um arquivo de uma pasta para outra no MESMO disco (ex: de Documentos para Imagens no disco C:), o que o Windows faz por padrão?', options: ['Move o arquivo', 'Copia o arquivo', 'Apaga o arquivo', 'Cria um atalho'], correct: 0, explanation: 'Ao arrastar entre pastas no mesmo disco rígido, o comportamento padrão é MOVER. Para copiar, você precisaria segurar a tecla Ctrl.' },
+      { question: 'O que acontece quando você clica no botão "Minimizar" (traço no canto superior direito) de uma janela?', options: ['A janela é fechada permanentemente', 'A janela encolhe e fica escondida na Barra de Tarefas, mas o programa continua aberto', 'O arquivo é salvo', 'O computador é desligado'], correct: 1, explanation: 'Minimizar "esconde" a janela na Barra de Tarefas inferior, permitindo que você veja outras coisas sem fechar o programa.' },
+      { question: 'Qual das opções abaixo NÃO é um caminho de arquivo válido no Windows?', options: ['C:\\Usuários\\Fotos\\viagem.jpg', 'D:\\Musicas\\rock.mp3', 'C://Pasta//arquivo?texto.txt', 'C:\\Documentos\\Trabalho\\Relatorio.docx'], correct: 2, explanation: 'No Windows, os caminhos usam barras invertidas (\\) e caracteres especiais como o ponto de interrogação (?) não são permitidos em nomes de arquivos.' },
+      { question: 'O que significa uma pasta estar dentro de outra pasta (ex: C:\\Fotos\\Ferias)?', options: ['Isso é um erro do sistema', 'A pasta "Ferias" é uma subpasta da pasta "Fotos"', 'Os arquivos de "Ferias" foram apagados', 'Elas são a mesma pasta com dois nomes'], correct: 1, explanation: 'Organizamos em hierarquia: "Ferias" é uma subpasta (ou pasta filha) de "Fotos". É como uma gaveta dentro de um armário!' }
+    ];
+
+    const STEPS = [
+      { title:'📖 Arquivos vs Pastas', render: renderStep1 },
+      { title:'🗂️ A Árvore de Pastas', render: renderStep2 },
+      { title:'🎮 Explorador Simulado', render: renderStep3 },
+      { title:'✅ Quiz Final', render: renderStep4 },
+    ];
+
+    // ===== PASSO 1 =====
+    function renderStep1() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#F59E0B,#D97706);">
+            <div class="hero-badge">📖 Teoria — Passo 1 de 4</div>
+            <h2>Arquivos e Pastas</h2>
+            <p>Aprenda a diferença fundamental para organizar sua vida digital.</p>
+          </div>
+
+          <div style="display:flex; gap:24px; margin-top:32px; flex-wrap:wrap;">
+            
+            <div class="card" style="flex:1; min-width:300px; border-top: 4px solid #3B82F6;">
+              <div class="card-body">
+                <div style="font-size:48px; margin-bottom:16px;">📄</div>
+                <h3 style="font-size:22px; margin-bottom:8px;">Arquivo (File)</h3>
+                <p style="color:var(--text-secondary); line-height:1.6; margin-bottom:16px;">
+                  É um documento real contendo informações. Pode ser um texto, uma música, uma foto ou um vídeo.
+                </p>
+                <div style="background:#F8FAFC; padding:12px; border-radius:8px;">
+                  <strong style="font-size:12px; color:#64748B;">EXEMPLOS:</strong>
+                  <ul style="margin-top:8px; margin-left:16px; font-size:14px;">
+                    <li>Receita_Bolo.docx (Texto)</li>
+                    <li>Foto_Praia.jpg (Imagem)</li>
+                    <li>Musica_Favorita.mp3 (Áudio)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="flex:1; min-width:300px; border-top: 4px solid #F59E0B;">
+              <div class="card-body">
+                <div style="font-size:48px; margin-bottom:16px;">📂</div>
+                <h3 style="font-size:22px; margin-bottom:8px;">Pasta (Folder)</h3>
+                <p style="color:var(--text-secondary); line-height:1.6; margin-bottom:16px;">
+                  É um recipiente usado apenas para <strong>guardar e organizar</strong> arquivos. Uma pasta pode conter arquivos ou até mesmo outras pastas dentro dela!
+                </p>
+                <div style="background:#FFFBEB; padding:12px; border-radius:8px;">
+                  <strong style="font-size:12px; color:#B45309;">EXEMPLOS:</strong>
+                  <ul style="margin-top:8px; margin-left:16px; font-size:14px; color:#92400E;">
+                    <li>Pasta "Fotos 2025"</li>
+                    <li>Pasta "Documentos do Trabalho"</li>
+                    <li>Pasta "Músicas"</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+            <div class="info-box tip" style="margin-top:24px;">
+              <div class="info-box-title">💡 Metáfora do Escritório</div>
+              <div class="info-box-body">
+                Imagine um escritório físico. O <strong>Armário</strong> é o seu Disco Rígido (HD). 
+                As <strong>Gavetas e Pastas de Papelão</strong> são as Pastas do computador. 
+                E as <strong>Folhas de Papel</strong> dentro delas são os Arquivos!
+              </div>
+            </div>
+            ${!stepUnlocked ? `
+              <div style="text-align:center; margin-top:32px;">
+                <button class="btn btn-outline" onclick="this.style.display='none'; unlockNext();" style="border-width:2px; font-weight:bold;">✅ Marcar como lido e entendido</button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== PASSO 2 =====
+    function renderStep2() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#10B981,#059669);">
+            <div class="hero-badge">🗂️ Estrutura — Passo 2 de 4</div>
+            <h2>A Árvore de Diretórios</h2>
+            <p>Como o computador organiza as pastas umas dentro das outras.</p>
+          </div>
+
+          <div class="card" style="margin-top:24px;">
+            <div class="card-body" style="padding:32px;">
+              <h3 style="margin-bottom:16px; font-size:18px;">Estrutura Hierárquica</h3>
+              <p style="color:var(--text-secondary); margin-bottom:24px;">
+                Tudo no Windows começa no "Disco Local (C:)". Dentro dele, temos pastas principais. 
+                Siga a linha abaixo para entender como um arquivo fica "escondido" dentro de várias pastas.
+              </p>
+
+              <div style="font-family:monospace; font-size:16px; line-height:1.8; background:#1E293B; color:#E2E8F0; padding:24px; border-radius:8px; overflow-x:auto;">
+                <div><span style="color:#60A5FA;">💻 Este Computador (Disco C:)</span></div>
+                <div>├── <span style="color:#FCD34D;">📂 Imagens</span></div>
+                <div>│&nbsp;&nbsp;&nbsp;├── <span style="color:#FCD34D;">📂 Férias 2025</span></div>
+                <div>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span style="color:#34D399;">🏖️ foto_praia.jpg</span> <span style="color:#94A3B8;font-size:12px;">← O Arquivo!</span></div>
+                <div>│&nbsp;&nbsp;&nbsp;└── <span style="color:#FCD34D;">📂 Família</span></div>
+                <div>└── <span style="color:#FCD34D;">📂 Documentos</span></div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;└── <span style="color:#34D399;">📝 curriculo.pdf</span></div>
+              </div>
+
+              <div style="margin-top:24px; padding:16px; background:#F1F5F9; border-radius:8px;">
+                <div style="font-weight:700; margin-bottom:8px;">O "Caminho" do Arquivo:</div>
+                <code style="background:white; padding:4px 8px; border:1px solid #CBD5E1; border-radius:4px; color:#DC2626;">
+                  C:\\Imagens\\Férias 2025\\foto_praia.jpg
+                </code>
+                <div style="font-size:13px; color:var(--text-secondary); margin-top:8px;">
+                  As barras (\\) separam as pastas. Lendo da esquerda para a direita, você entra cada vez mais fundo!
+                </div>
+              </div>
+            </div>
+          </div>
+          ${!stepUnlocked ? `
+            <div style="text-align:center; margin-top:32px;">
+              <button class="btn btn-outline" onclick="this.style.display='none'; unlockNext();" style="border-width:2px; font-weight:bold;">✅ Marcar como lido e entendido</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ===== PASSO 3: SIMULADOR =====
+    function renderStep3() {
+      // Reseta estado
+      currentFolderId = 'C:';
+      navHistory = ['C:'];
+      historyPos = 0;
+      currentMission = 0;
+      setTimeout(renderExplorer, 0);
+
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#3B82F6,#2563EB);">
+            <div class="hero-badge">🎮 Simulação — Passo 3 de 4</div>
+            <h2>Navegando no Explorador</h2>
+            <p>Use o Explorador simulado abaixo para completar as missões de busca!</p>
+          </div>
+
+          <div class="mission-hud" id="mission-hud" style="margin-top:24px;">
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Missão Atual</div>
+              <div style="font-size:18px; font-weight:800; color:var(--primary-dark);" id="mission-text">Encontre a foto da Praia na pasta Férias 2025</div>
+            </div>
+            <div style="font-size:32px;">🎯</div>
+          </div>
+
+          <!-- Janela do Windows Fake -->
+          <div class="win-explorer">
+            <!-- Barra de Título -->
+            <div class="win-titlebar">
+              <div><span style="margin-right:6px;">📁</span> Explorador de Arquivos</div>
+              <div class="win-controls">
+                <div class="win-btn min"></div>
+                <div class="win-btn max"></div>
+                <div class="win-btn close"></div>
+              </div>
+            </div>
+            
+            <!-- Toolbar -->
+            <div class="win-toolbar">
+              <div class="win-nav-btns">
+                <button class="win-nav-btn" id="btn-back" onclick="navBack()">←</button>
+                <button class="win-nav-btn" id="btn-fwd" onclick="navFwd()">→</button>
+                <button class="win-nav-btn" id="btn-up" onclick="navUp()">↑</button>
+              </div>
+              <div class="win-address-bar" id="address-bar">
+                💻 Este Computador
+              </div>
+            </div>
+
+            <!-- Corpo -->
+            <div class="win-body">
+              <div class="win-sidebar">
+                <div class="sidebar-item" onclick="openFolder('C:')">💻 Este Computador</div>
+                <div class="sidebar-item" onclick="openFolder('docs')" style="padding-left:24px;">📂 Documentos</div>
+                <div class="sidebar-item" onclick="openFolder('pics')" style="padding-left:24px;">🖼️ Imagens</div>
+                <div class="sidebar-item" onclick="openFolder('downloads')" style="padding-left:24px;">⬇️ Downloads</div>
+              </div>
+              <div class="win-content" id="explorer-content">
+                <!-- Arquivos injetados aqui -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    // Lógica do Explorador Simulado
+    function renderExplorer() {
+      // Se terminou missões
+      if (currentMission >= MISSIONS.length) {
+        unlockNext();
+        document.getElementById('step-content').innerHTML = `
+          <div class="module-section" style="text-align:center; padding:60px 20px;">
+            <div style="font-size:80px; margin-bottom:20px;">🎉</div>
+            <h2 style="font-size:28px; color:var(--success-dark); margin-bottom:12px;">Exploração Concluída!</h2>
+            <p style="font-size:16px; color:var(--text-secondary); margin-bottom:32px;">Você sabe navegar e encontrar arquivos em pastas!</p>
+            <button class="btn btn-primary" onclick="nextStep()">Ir para o Quiz Final →</button>
+          </div>
+        `;
+        App.completeStep(MODULE_ID, 2, 20);
+        return;
+      }
+
+      // Atualiza Missão
+      const m = MISSIONS[currentMission];
+      document.getElementById('mission-text').textContent = m.text;
+
+      const folder = FILE_SYSTEM[currentFolderId];
+      
+      // Atualiza Botoes Nav
+      document.getElementById('btn-back').disabled = historyPos === 0;
+      document.getElementById('btn-fwd').disabled = historyPos === navHistory.length - 1;
+      document.getElementById('btn-up').disabled = !folder.parent;
+
+      // Caminho
+      let path = '';
+      let curr = folder;
+      while(curr) {
+        path = curr.name + (path ? ' > ' + path : '');
+        curr = FILE_SYSTEM[curr.parent];
+      }
+      document.getElementById('address-bar').textContent = `🖥️ ${path}`;
+
+      // Renderiza Itens
+      const content = document.getElementById('explorer-content');
+      content.innerHTML = '';
+      
+      if (!folder.children || folder.children.length === 0) {
+        content.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#94A3B8; padding:40px;">Pasta vazia</div>';
+        return;
+      }
+
+      folder.children.forEach(childId => {
+        const child = FILE_SYSTEM[childId];
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = `
+          <div class="file-icon">${child.icon}</div>
+          <div class="file-name">${child.name}</div>
+        `;
+        
+        item.onclick = () => {
+          App.playSound('click');
+          if (child.type === 'folder') {
+            // Entrar na pasta
+            historyPos++;
+            navHistory.splice(historyPos); // Limpa histórico "frente"
+            navHistory.push(childId);
+            currentFolderId = childId;
+            renderExplorer();
+          } else {
+            // Clicou num arquivo
+            item.classList.add('selected');
+            checkMission(childId);
+          }
+        };
+
+        content.appendChild(item);
+      });
+    }
+
+    function navBack() {
+      if (historyPos > 0) { historyPos--; currentFolderId = navHistory[historyPos]; App.playSound('click'); renderExplorer(); }
+    }
+    function navFwd() {
+      if (historyPos < navHistory.length-1) { historyPos++; currentFolderId = navHistory[historyPos]; App.playSound('click'); renderExplorer(); }
+    }
+    function navUp() {
+      const parentId = FILE_SYSTEM[currentFolderId].parent;
+      if (parentId) { openFolder(parentId); }
+    }
+    function openFolder(folderId) {
+      if (currentFolderId === folderId) return;
+      historyPos++;
+      navHistory.splice(historyPos);
+      navHistory.push(folderId);
+      currentFolderId = folderId;
+      App.playSound('click');
+      renderExplorer();
+    }
+
+    function checkMission(clickedFileId) {
+      const m = MISSIONS[currentMission];
+      if (clickedFileId === m.targetFile && currentFolderId === m.targetFolder) {
+        // Acertou!
+        App.playSound('correct');
+        App.showToast('success', 'Muito bem!', 'Arquivo correto encontrado!');
+        
+        const hud = document.getElementById('mission-hud');
+        hud.style.background = 'var(--success-light)';
+        hud.style.borderColor = 'var(--success)';
+        document.getElementById('mission-text').textContent = '✅ Encontrado!';
+        
+        setTimeout(() => {
+          hud.style.background = 'var(--primary-ultra-light)';
+          hud.style.borderColor = 'var(--primary)';
+          currentMission++;
+          currentFolderId = 'C:';
+          navHistory = ['C:'];
+          historyPos = 0;
+          renderExplorer();
+        }, 1500);
+
+      } else {
+        // Errou
+        App.playSound('incorrect');
+        App.showToast('error', 'Ops!', 'Este não é o arquivo correto para esta missão.');
+      }
+    }
+
+
+    // ===== PASSO 4: QUIZ =====
+    function renderStep4() {
+      const questionIndex = Object.keys(quizAnswers).length;
+      if (questionIndex >= QUIZ_QUESTIONS.length) return renderQuizResult();
+      const q = QUIZ_QUESTIONS[questionIndex];
+      const letters = ['A','B','C','D'];
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#059669,#047857);">
+            <div class="hero-badge">✅ Quiz — Passo 4 de 4</div>
+            <h2>Teste de Arquivos!</h2>
+          </div>
+          <div style="max-width:620px;margin:0 auto;">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(questionIndex/QUIZ_QUESTIONS.length)*100}%"></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${questionIndex+1}/${QUIZ_QUESTIONS.length}</span>
+            </div>
+            <div class="card">
+              <div class="card-body" style="padding:28px;">
+                <div class="quiz-question">${q.question}</div>
+                <div class="quiz-options">
+                  ${q.options.map((opt,i)=>`
+                    <div class="quiz-option" id="option-${i}" onclick="answerQuiz(${questionIndex},${i})">
+                      <div class="quiz-letter">${letters[i]}</div><span>${opt}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback"><span class="quiz-feedback-icon"></span><div class="quiz-feedback-text"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuizResult() {
+      const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+      const stars = pct>=80?3:pct>=60?2:1;
+      return `
+        <div class="module-section" style="text-align:center;">
+          <div class="card" style="max-width:500px;margin:40px auto;padding:40px 32px;">
+            <div style="font-size:72px;margin-bottom:16px;">${pct>=80?'🏆':pct>=60?'🌟':'📚'}</div>
+            <h2>${pct>=80?'Explorador Nato!':pct>=60?'Muito Bem!':'Continue Praticando!'}</h2>
+            <div style="font-size:48px;font-weight:900;font-family:var(--font-heading);color:var(--primary);margin:16px 0;">${pct}%</div>
+            <div style="color:var(--text-secondary);margin-bottom:20px;">Acertou ${quizScore} de ${QUIZ_QUESTIONS.length}</div>
+            <div class="stars-row">${Array.from({length:3},(_,i)=>`<span class="star-item" style="color:${i<stars?'#F59E0B':'#E2E8F0'}">${i<stars?'⭐':'☆'}</span>`).join('')}</div>
+            <button class="btn btn-success btn-lg" style="margin-top:24px;" onclick="finishModule()">🚀 Concluir Módulo! +70 XP</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // LÓGICA BASE
+    function answerQuiz(qIdx, optIdx) {
+      const q = QUIZ_QUESTIONS[qIdx];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      const correct = optIdx === q.correct;
+      if (correct) quizScore++;
+      quizAnswers[qIdx] = { selected: optIdx, correct: q.correct };
+      document.getElementById(`option-${optIdx}`).classList.add(correct?'correct':'incorrect');
+      if (!correct) document.getElementById(`option-${q.correct}`).classList.add('correct');
+      const fb = document.getElementById('quiz-feedback');
+      fb.innerHTML = `<span class="quiz-feedback-icon">${correct?'✅':'❌'}</span><div class="quiz-feedback-text"><strong>${correct?'Correto! 🎉':'Oops!'}</strong><div style="margin-top:4px;">${q.explanation}</div></div>`;
+      fb.className = `quiz-feedback show ${correct?'correct':'incorrect'}`;
+      App.playSound(correct?'correct':'incorrect');
+      setTimeout(renderCurrentStep, 2200);
+    }
+    function finishModule() {
+      const pct = Math.round((quizScore/QUIZ_QUESTIONS.length)*100);
+      App.saveQuizScore(MODULE_ID, pct);
+      App.completeModule(MODULE_ID, pct);
+      App.showModuleComplete(MODULE_ID, pct);
+    }
+    function unlockNext() {
+      stepUnlocked = true;
+      document.getElementById('btn-next').style.display = 'inline-flex';
+      App.playSound('correct');
+    }
+
+    function renderCurrentStep() {
+      const progress = App.getModuleProgress(MODULE_ID);
+      stepUnlocked = currentStep < (progress.currentStep || 0);
+
+      document.getElementById('step-content').innerHTML = STEPS[currentStep].render();
+      let html = '';
+      STEPS.forEach((_,i) => {
+        html += `<div class="step-dot ${i<currentStep?'done':i===currentStep?'active':'pending'}"></div>`;
+        if (i<STEPS.length-1) html += `<div class="step-line ${i<currentStep?'done':''}"></div>`;
+      });
+      document.getElementById('step-progress').innerHTML = html;
+      document.getElementById('step-label').textContent = `Passo ${currentStep+1}/${STEPS.length}`;
+      document.getElementById('footer-step').textContent = `Passo ${currentStep+1} de ${STEPS.length}: ${STEPS[currentStep].title}`;
+      document.getElementById('btn-prev').style.display = currentStep>0?'inline-flex':'none';
+      
+      if (currentStep === STEPS.length - 1) {
+        document.getElementById('btn-next').style.display = 'none';
+      } else {
+        document.getElementById('btn-next').style.display = stepUnlocked ? 'inline-flex' : 'none';
+      }
+
+      const state = App.loadState();
+      if (state) document.getElementById('nav-xp').textContent = state.totalXP||0;
+    }
+    function nextStep() {
+      if (currentStep < STEPS.length-1) {
+        if (currentStep < 2) App.completeStep(MODULE_ID, currentStep, 10);
+        currentStep++;
+        renderCurrentStep();
+        window.scrollTo({top:0,behavior:'smooth'});
+        App.playSound('click');
+      }
+    }
+    function prevStep() { if (currentStep>0) { currentStep--; renderCurrentStep(); window.scrollTo({top:0,behavior:'smooth'}); } }
+
+    const HELPS = [
+      {title:'❓ Arquivo vs Pasta',body:'Pasta (amarela) é só um recipiente para organizar. Arquivo é o documento em si (foto, texto).'},
+      {title:'❓ Caminhos',body:'Lemos as pastas de fora para dentro. C: > Imagens > Férias > foto.jpg.'},
+      {title:'❓ Explorador Simulado',body:'Leia a Missão. Clique <strong>duas vezes (ou uma, no nosso app)</strong> na pasta amarela para entrar nela. Encontre o arquivo final e clique nele! Você pode usar a seta Voltar (←) lá em cima ou clicar no menu lateral esquerdo.'},
+      {title:'❓ Quiz',body:'Responda as perguntas baseadas no que aprendeu. Boa sorte!'}
+    ];
+    function showHelp() {
+      const h = HELPS[currentStep]||HELPS[0];
+      document.getElementById('help-title').innerHTML = h.title;
+      document.getElementById('help-body').innerHTML = h.body;
+      document.getElementById('help-modal').classList.add('active');
+    }
+    function closeHelp() { document.getElementById('help-modal').classList.remove('active'); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      App.requireStudent();
+      const progress = App.getModuleProgress(MODULE_ID);
+      currentStep = Math.min(progress.currentStep||0, STEPS.length-1);
+      if (progress.quizScore>0) { for(let i=0;i<QUIZ_QUESTIONS.length;i++) quizAnswers[i]=true; quizScore=Math.round((progress.quizScore/100)*QUIZ_QUESTIONS.length); }
+      renderCurrentStep();
+    });
+  </script>
+</body>
+</html>

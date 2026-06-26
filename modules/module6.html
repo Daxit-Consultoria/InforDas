@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Módulo 6 — Segurança Digital</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <style>
+    body { background: var(--bg); }
+
+    /* ===== AVALIADOR DE SENHA ===== */
+    .password-checker {
+      background: white;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-top: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .pwd-input-wrap { position: relative; margin-bottom: 16px; }
+    .pwd-input {
+      width: 100%; padding: 16px 48px 16px 16px;
+      font-size: 24px; font-family: monospace; border: 2px solid #CBD5E1;
+      border-radius: 8px; outline: none; transition: border-color 0.3s;
+    }
+    .pwd-input:focus { border-color: var(--primary); }
+    .pwd-toggle {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; font-size: 20px; color: #64748B; cursor: pointer;
+    }
+    
+    .pwd-strength-bar { height: 8px; background: #E2E8F0; border-radius: 4px; margin-bottom: 12px; overflow: hidden; display: flex; }
+    .pwd-strength-fill { height: 100%; width: 0%; transition: width 0.3s, background 0.3s; }
+    .pwd-strength-text { font-weight: 800; font-size: 18px; text-align: center; margin-bottom: 24px; }
+    
+    .pwd-reqs { display: flex; flex-direction: column; gap: 8px; }
+    .pwd-req { display: flex; align-items: center; gap: 8px; color: #64748B; font-size: 14px; }
+    .pwd-req.met { color: #10B981; }
+    .pwd-req i { width: 16px; text-align: center; }
+
+    /* ===== SIMULADOR DE EMAIL ===== */
+    .email-sim {
+      width: 100%; max-width: 700px; margin: 0 auto;
+      background: white; border: 1px solid #CBD5E1; border-radius: 8px;
+      overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .email-header { background: #F1F5F9; padding: 16px 20px; border-bottom: 1px solid #E2E8F0; }
+    .email-sender { font-weight: 700; color: #0F172A; font-size: 15px; display: flex; align-items: center; gap: 8px;}
+    .email-address { color: #64748B; font-weight: 400; font-size: 13px; }
+    .email-subject { font-size: 20px; font-weight: 800; color: #0F172A; margin-top: 8px; }
+    
+    .email-body { padding: 32px 20px; font-size: 15px; color: #334155; line-height: 1.6; min-height: 250px;}
+    .email-link { color: #2563EB; text-decoration: underline; cursor: pointer; font-weight: 600; }
+    
+    .email-actions {
+      display: flex; gap: 16px; padding: 20px; background: #F8FAFC; border-top: 1px solid #E2E8F0;
+    }
+    .btn-safe { flex: 1; padding: 16px; background: white; border: 2px solid #10B981; color: #10B981; border-radius: 8px; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.2s;}
+    .btn-safe:hover { background: #10B981; color: white; }
+    .btn-scam { flex: 1; padding: 16px; background: white; border: 2px solid #EF4444; color: #EF4444; border-radius: 8px; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.2s;}
+    .btn-scam:hover { background: #EF4444; color: white; }
+
+  </style>
+</head>
+<body>
+
+  <nav class="module-nav">
+    <a href="../dashboard.html" style="font-size:22px;text-decoration:none;" title="Dashboard">🏠</a>
+    <div class="module-nav-title">🛡️ Módulo 6 — Segurança Digital</div>
+    <div class="step-progress" id="step-progress"></div>
+    <div class="step-label" id="step-label">Passo 1/4</div>
+    <div class="xp-badge" style="font-size:13px;">⭐ <span id="nav-xp">0</span></div>
+  </nav>
+
+  <div class="module-container">
+    <div id="step-content"></div>
+  </div>
+
+  <div class="module-footer">
+    <div class="module-footer-info"><span id="footer-step">Passo 1 de 4</span></div>
+    <div class="module-footer-actions">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()" style="display:none;">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Próximo →</button>
+    </div>
+  </div>
+
+  <button class="help-fab" onclick="showHelp()">❓</button>
+  <div class="modal-custom" id="help-modal">
+    <div class="modal-box">
+      <div class="modal-box-header">
+        <h3 id="help-title">❓ Ajuda</h3>
+        <button class="modal-close" onclick="closeHelp()">✕</button>
+      </div>
+      <div class="modal-box-body" id="help-body"></div>
+      <div class="modal-box-footer"><button class="btn btn-primary" onclick="closeHelp()">Entendi!</button></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../js/app.js"></script>
+  <script>
+    const MODULE_ID = 6;
+    let currentStep = 0;
+    let quizAnswers = {};
+    let quizScore = 0;
+
+    let emailsDone = 0;
+
+    // QUIZ
+    const QUIZ_QUESTIONS = [
+      { question: 'Qual das opções abaixo é a senha MAIS segura?', options: ['123456', 'data_de_nascimento', 'senha123', 'M@caco$VoadoreS_99!'], correct: 3, explanation: 'Senhas longas, que misturam maiúsculas, minúsculas, números e símbolos são as mais seguras.' },
+      { question: 'Você recebe um e-mail urgente dizendo que sua conta do banco foi bloqueada, com um link para "Desbloquear". O que você faz?', options: ['Clico no link e digito meus dados rapidamente.', 'Respondo o e-mail com minha senha.', 'Não clico em nada! Abro o aplicativo do banco ou ligo para o gerente para confirmar.', 'Clico no link só para ver se é verdade.'], correct: 2, explanation: 'Bancos NUNCA mandam links pedindo senhas por e-mail. Isso é Phishing (Golpe).' },
+      { question: 'O que é Phishing?', options: ['Um esporte de pescaria online', 'Uma técnica onde golpistas se passam por empresas reais (como bancos) para "pescar" suas senhas', 'Um antivírus gratuito', 'Uma forma de navegar mais rápido'], correct: 1, explanation: 'Phishing (Pescaria em inglês) é o golpe mais comum da internet, tentando roubar seus dados com links falsos.' },
+      { question: 'Ao fazer uma compra em um site, o que você DEVE verificar?', options: ['Se o site tem muitas cores', 'Se há um cadeado fechado ao lado do endereço e se começa com HTTPS', 'Se o site carrega rápido', 'Se o dono da loja tem Instagram'], correct: 1, explanation: 'O cadeado e o HTTPS garantem que a conexão entre você e o site é criptografada e segura.' },
+    ];
+
+    const EMAILS = [
+      {
+        id: 1,
+        sender: 'Banco do Brasil', address: '&lt;suporte-banco@gmail.com&gt;',
+        subject: 'URGENTE: Sua conta foi bloqueada!',
+        body: 'Prezado cliente,<br><br>Sua conta foi bloqueada por motivos de segurança. Para evitar o cancelamento do seu cartão de crédito, atualize seus dados imediatamente.<br><br><span class="email-link" onclick="App.showToast(\'warning\', \'Cuidado!\', \'Nunca clique em links suspeitos!\')">Clique aqui para atualizar seus dados agora</span><br><br>Atenciosamente,<br>Equipe de Segurança',
+        isScam: true,
+        feedback: '<strong>É GOLPE!</strong> O e-mail do remetente é "@gmail.com". Bancos reais usam domínios próprios (ex: @bb.com.br). O senso de urgência ("URGENTE") também é típico de golpistas.'
+      },
+      {
+        id: 2,
+        sender: 'Netflix', address: '&lt;info@mailer.netflix.com&gt;',
+        subject: 'Séries que você pode gostar',
+        body: 'Olá!<br><br>Adicionamos novas séries baseadas no que você assistiu recentemente.<br><br>Venha conferir os novos episódios da sua série favorita. Eles já estão disponíveis na sua conta.<br><br><span class="email-link">Assistir agora</span><br><br>Equipe Netflix',
+        isScam: false,
+        feedback: '<strong>É SEGURO!</strong> O e-mail usa o domínio oficial "@mailer.netflix.com", não pede dados pessoais nem cria falso senso de urgência.'
+      },
+      {
+        id: 3,
+        sender: 'Correios', address: '&lt;rastreio-correios-br@rastreador-falso.net&gt;',
+        subject: 'Sua encomenda foi retida na alfândega',
+        body: 'Olá,<br><br>Sua encomenda internacional código BR987654321 foi retida. Para liberar a entrega na sua casa, é necessário pagar uma taxa de despacho postal de R$ 15,00.<br><br><span class="email-link" onclick="App.showToast(\'warning\', \'Cuidado!\', \'O link levaria para uma página de pagamento falsa.\')">Gerar Boleto de Pagamento</span><br><br>Após o pagamento, a encomenda será liberada em 24h.',
+        isScam: true,
+        feedback: '<strong>É GOLPE!</strong> O endereço de e-mail remetente ("@rastreador-falso.net") não é dos Correios. Os golpistas aproveitam que muita gente compra da China para enviar esses boletos falsos.'
+      }
+    ];
+    let currentEmail = 0;
+
+
+    const STEPS = [
+      { title:'🔑 Senhas Fortes', render: renderStep1 },
+      { title:'🎣 O Golpe do Phishing', render: renderStep2 },
+      { title:'🎮 Detetive de E-mail', render: renderStep3 },
+      { title:'✅ Quiz Final', render: renderStep4 },
+    ];
+
+    // ===== PASSO 1: SENHAS =====
+    function renderStep1() {
+      // Injeta script para o testador
+      setTimeout(() => {
+        const input = document.getElementById('pwd-test');
+        if(input) input.addEventListener('input', checkPwdStrength);
+      }, 0);
+
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#6366F1,#4338CA);">
+            <div class="hero-badge">🔑 Segurança — Passo 1 de 4</div>
+            <h2>Senhas: A Chave da sua Casa</h2>
+            <p>Usar "123456" é o mesmo que deixar a porta da sua casa escancarada.</p>
+          </div>
+
+          <div style="display:flex; gap:24px; margin-top:32px; flex-wrap:wrap;">
+            
+            <div class="card" style="flex:1; min-width:300px;">
+              <div class="card-body">
+                <h3 style="margin-bottom:16px;">O que faz uma senha ser forte?</h3>
+                <ul style="line-height:1.8; color:var(--text-secondary);">
+                  <li>📏 <strong>Tamanho:</strong> Mínimo de 8 a 12 caracteres.</li>
+                  <li>🔠 <strong>Letras:</strong> Maiúsculas e minúsculas misturadas.</li>
+                  <li>🔢 <strong>Números:</strong> Inclua números no meio da senha.</li>
+                  <li>!@# <strong>Símbolos:</strong> Adicione caracteres especiais (@, #, !, $, %).</li>
+                  <li>❌ <strong>O que NÃO usar:</strong> Data de nascimento, nome do filho, "senha123", "qwerty".</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="flex:1; min-width:300px; background:#F8FAFC; border:1px solid #CBD5E1;">
+              <div class="card-body">
+                <h3 style="margin-bottom:16px; color:#1E293B;">💡 Dica de Ouro: Frases-Senha</h3>
+                <p style="color:var(--text-secondary); margin-bottom:12px;">Em vez de decorar coisas como <code>XpT9$zQ</code>, use uma frase que faça sentido para você, mas misturada:</p>
+                <div style="background:white; padding:12px; border-radius:8px; border:1px solid #E2E8F0; font-family:monospace; font-size:16px; text-align:center; color:#10B981; font-weight:bold;">
+                  G0st0DeCachorr0Quent3!
+                </div>
+                <p style="font-size:13px; color:#64748B; margin-top:8px; text-align:center;">Fácil de lembrar, impossível para um robô adivinhar!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TESTADOR DE SENHA -->
+          <div class="password-checker">
+            <h3 style="margin-bottom:16px;">Testador de Força de Senha</h3>
+            <p style="color:var(--text-secondary); font-size:14px; margin-bottom:16px;">
+              Digite uma senha abaixo para ver quão forte ela é (NADA é salvo ou enviado para a internet).
+            </p>
+            
+            <div class="pwd-input-wrap">
+              <input type="password" class="pwd-input" id="pwd-test" placeholder="Digite uma senha...">
+              <button class="pwd-toggle" onclick="togglePwd()"><i class="fa-solid fa-eye"></i></button>
+            </div>
+
+            <div class="pwd-strength-bar">
+              <div class="pwd-strength-fill" id="pwd-fill"></div>
+            </div>
+            <div class="pwd-strength-text" id="pwd-text" style="color:#94A3B8;">Digite para testar</div>
+
+            <div class="pwd-reqs">
+              <div class="pwd-req" id="req-len"><i class="fa-solid fa-circle-xmark"></i> Pelo menos 8 caracteres</div>
+              <div class="pwd-req" id="req-up"><i class="fa-solid fa-circle-xmark"></i> Letra maiúscula (A-Z)</div>
+              <div class="pwd-req" id="req-num"><i class="fa-solid fa-circle-xmark"></i> Pelo menos um número (0-9)</div>
+              <div class="pwd-req" id="req-sym"><i class="fa-solid fa-circle-xmark"></i> Símbolo especial (!@#$%)</div>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function togglePwd() {
+      const input = document.getElementById('pwd-test');
+      const icon = document.querySelector('.pwd-toggle i');
+      if(input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    function checkPwdStrength(e) {
+      const val = e.target.value;
+      
+      const hasLen = val.length >= 8;
+      const hasUp = /[A-Z]/.test(val);
+      const hasNum = /[0-9]/.test(val);
+      const hasSym = /[^A-Za-z0-9]/.test(val);
+
+      const updateReq = (id, met) => {
+        const el = document.getElementById(id);
+        if(met) {
+          el.classList.add('met');
+          el.querySelector('i').className = 'fa-solid fa-circle-check';
+        } else {
+          el.classList.remove('met');
+          el.querySelector('i').className = 'fa-solid fa-circle-xmark';
+        }
+      }
+
+      updateReq('req-len', hasLen);
+      updateReq('req-up', hasUp);
+      updateReq('req-num', hasNum);
+      updateReq('req-sym', hasSym);
+
+      let score = 0;
+      if(val.length > 4) score++;
+      if(hasLen) score++;
+      if(hasUp) score++;
+      if(hasNum) score++;
+      if(hasSym) score++;
+      if(val.length >= 12 && score === 5) score = 6; // Bônus tamanho extra
+
+      const fill = document.getElementById('pwd-fill');
+      const text = document.getElementById('pwd-text');
+
+      if(val.length === 0) {
+        fill.style.width = '0%';
+        text.textContent = 'Digite para testar';
+        text.style.color = '#94A3B8';
+        return;
+      }
+
+      if(score <= 2) {
+        fill.style.width = '25%'; fill.style.background = '#EF4444';
+        text.textContent = 'Fraca 😞'; text.style.color = '#EF4444';
+      } else if (score <= 4) {
+        fill.style.width = '60%'; fill.style.background = '#F59E0B';
+        text.textContent = 'Boa 🙂'; text.style.color = '#F59E0B';
+      } else {
+        fill.style.width = '100%'; fill.style.background = '#10B981';
+        text.textContent = 'Muito Forte! 🛡️'; text.style.color = '#10B981';
+      }
+    }
+
+    // ===== PASSO 2: PHISHING =====
+    function renderStep2() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#EF4444,#B91C1C);">
+            <div class="hero-badge">🎣 Golpes — Passo 2 de 4</div>
+            <h2>Cuidado com o Phishing!</h2>
+            <p>O golpe mais comum da internet tenta te fisgar pelo medo ou pela ganância.</p>
+          </div>
+
+          <div class="card" style="margin-top:24px;">
+            <div class="card-body">
+              <h3 style="margin-bottom:12px;">O que é Phishing ("Pescaria")?</h3>
+              <p style="color:var(--text-secondary); line-height:1.6; margin-bottom:24px;">
+                É quando golpistas se passam por empresas reais (Bancos, Netflix, Correios) enviando e-mails ou mensagens falsas. 
+                O objetivo é fazer você clicar em um link e digitar suas senhas ou dados do cartão de crédito em um site falso idêntico ao original.
+              </p>
+
+              <h3 style="margin-bottom:16px;">3 Regras para Não Cair em Golpes:</h3>
+              
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div style="display:flex; gap:16px; align-items:flex-start; padding:16px; background:#FEF2F2; border-radius:8px;">
+                  <div style="font-size:24px;">⚠️</div>
+                  <div>
+                    <strong style="color:#991B1B;">1. Cuidado com o Senso de Urgência</strong>
+                    <div style="color:#7F1D1D; font-size:14px; margin-top:4px;">
+                      "Sua conta será cancelada HOJE!", "Você tem uma dívida protestada!". Golpistas querem que você se desespere e clique sem pensar. Bancos não ameaçam por e-mail.
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:16px; align-items:flex-start; padding:16px; background:#FEF2F2; border-radius:8px;">
+                  <div style="font-size:24px;">📧</div>
+                  <div>
+                    <strong style="color:#991B1B;">2. Verifique o Remetente Real</strong>
+                    <div style="color:#7F1D1D; font-size:14px; margin-top:4px;">
+                      O nome diz "Banco Itaú", mas o e-mail de envio é "suporte123@gmail.com". Empresas grandes NUNCA usam Gmail, Yahoo ou Hotmail.
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:16px; align-items:flex-start; padding:16px; background:#ECFDF5; border-radius:8px;">
+                  <div style="font-size:24px;">🚫</div>
+                  <div>
+                    <strong style="color:#065F46;">3. Na dúvida, NÃO CLIQUE!</strong>
+                    <div style="color:#064E3B; font-size:14px; margin-top:4px;">
+                      Recebeu um e-mail do banco falando de uma compra suspeita? Não clique no link do e-mail. Abra uma aba nova, digite o site do seu banco ou abra o aplicativo no celular para conferir.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== PASSO 3: SIMULADOR DE EMAIL =====
+    function renderStep3() {
+      currentEmail = 0;
+      emailsDone = 0;
+      setTimeout(renderSimEmail, 0);
+
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#3B82F6,#2563EB);">
+            <div class="hero-badge">🎮 Simulação — Passo 3 de 4</div>
+            <h2>Detetive de E-mail</h2>
+            <p>Leia o e-mail abaixo e decida: É Seguro ou é Golpe (Phishing)?</p>
+          </div>
+
+          <div style="text-align:center; font-weight:700; color:var(--text-secondary); margin: 24px 0 12px;">
+            E-mail <span id="sim-email-count">1</span> de ${EMAILS.length}
+          </div>
+
+          <div class="email-sim" id="email-sim-container">
+            <!-- Renderizado via JS -->
+          </div>
+
+          <div id="email-feedback" style="display:none; margin-top:20px; padding:20px; border-radius:8px;">
+          </div>
+          <div id="email-next-wrap" style="text-align:center; margin-top:16px; display:none;">
+            <button class="btn btn-primary" onclick="nextSimEmail()">Próximo E-mail →</button>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function renderSimEmail() {
+      if (currentEmail >= EMAILS.length) {
+        document.getElementById('step-content').innerHTML = `
+          <div class="module-section" style="text-align:center; padding:60px 20px;">
+            <div style="font-size:80px; margin-bottom:20px;">🕵️‍♂️</div>
+            <h2 style="font-size:28px; color:var(--primary-dark); margin-bottom:12px;">Treinamento Concluído!</h2>
+            <p style="font-size:16px; color:var(--text-secondary); margin-bottom:32px;">Você agora sabe identificar golpes por e-mail. Fique sempre atento!</p>
+            <button class="btn btn-primary" onclick="nextStep()">Ir para o Quiz Final →</button>
+          </div>
+        `;
+        App.completeStep(MODULE_ID, 2, 20); // XP bônus
+        return;
+      }
+
+      const email = EMAILS[currentEmail];
+      document.getElementById('sim-email-count').textContent = currentEmail + 1;
+      
+      const container = document.getElementById('email-sim-container');
+      container.innerHTML = `
+        <div class="email-header">
+          <div class="email-sender">${email.sender} <span class="email-address">${email.address}</span></div>
+          <div class="email-subject">${email.subject}</div>
+        </div>
+        <div class="email-body">
+          ${email.body}
+        </div>
+        <div class="email-actions" id="email-actions">
+          <button class="btn-safe" onclick="judgeEmail(false)"><i class="fa-solid fa-shield-check"></i> É SEGURO</button>
+          <button class="btn-scam" onclick="judgeEmail(true)"><i class="fa-solid fa-triangle-exclamation"></i> É GOLPE!</button>
+        </div>
+      `;
+
+      document.getElementById('email-feedback').style.display = 'none';
+      document.getElementById('email-next-wrap').style.display = 'none';
+    }
+
+    function judgeEmail(userSaidScam) {
+      const email = EMAILS[currentEmail];
+      const isCorrect = userSaidScam === email.isScam;
+
+      App.playSound(isCorrect ? 'correct' : 'incorrect');
+      document.getElementById('email-actions').style.display = 'none';
+
+      const fb = document.getElementById('email-feedback');
+      fb.style.display = 'block';
+      
+      if (isCorrect) {
+        fb.style.background = '#DCFCE7';
+        fb.style.border = '1px solid #10B981';
+        fb.innerHTML = `
+          <h3 style="color:#166534; margin-bottom:8px;">✅ Acertou!</h3>
+          <p style="color:#14532D; font-size:15px; line-height:1.5;">${email.feedback}</p>
+        `;
+      } else {
+        fb.style.background = '#FEE2E2';
+        fb.style.border = '1px solid #EF4444';
+        fb.innerHTML = `
+          <h3 style="color:#991B1B; margin-bottom:8px;">❌ Errou! Cuidado!</h3>
+          <p style="color:#7F1D1D; font-size:15px; line-height:1.5;">${email.feedback}</p>
+        `;
+      }
+
+      document.getElementById('email-next-wrap').style.display = 'block';
+    }
+
+    function nextSimEmail() {
+      currentEmail++;
+      renderSimEmail();
+    }
+
+
+    // ===== PASSO 4: QUIZ =====
+    function renderStep4() {
+      const questionIndex = Object.keys(quizAnswers).length;
+      if (questionIndex >= QUIZ_QUESTIONS.length) return renderQuizResult();
+      const q = QUIZ_QUESTIONS[questionIndex];
+      const letters = ['A','B','C','D'];
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#059669,#047857);">
+            <div class="hero-badge">✅ Quiz — Passo 4 de 4</div>
+            <h2>Teste de Segurança!</h2>
+          </div>
+          <div style="max-width:620px;margin:0 auto;">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(questionIndex/QUIZ_QUESTIONS.length)*100}%"></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${questionIndex+1}/${QUIZ_QUESTIONS.length}</span>
+            </div>
+            <div class="card">
+              <div class="card-body" style="padding:28px;">
+                <div class="quiz-question">${q.question}</div>
+                <div class="quiz-options">
+                  ${q.options.map((opt,i)=>`
+                    <div class="quiz-option" id="option-${i}" onclick="answerQuiz(${questionIndex},${i})">
+                      <div class="quiz-letter">${letters[i]}</div><span>${opt}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback"><span class="quiz-feedback-icon"></span><div class="quiz-feedback-text"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuizResult() {
+      const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+      const stars = pct>=80?3:pct>=60?2:1;
+      return `
+        <div class="module-section" style="text-align:center;">
+          <div class="card" style="max-width:500px;margin:40px auto;padding:40px 32px;">
+            <div style="font-size:72px;margin-bottom:16px;">${pct>=80?'🛡️':pct>=60?'🌟':'📚'}</div>
+            <h2>${pct>=80?'Guardião Digital!':pct>=60?'Muito Bem!':'Continue Praticando!'}</h2>
+            <div style="font-size:48px;font-weight:900;font-family:var(--font-heading);color:var(--primary);margin:16px 0;">${pct}%</div>
+            <div style="color:var(--text-secondary);margin-bottom:20px;">Acertou ${quizScore} de ${QUIZ_QUESTIONS.length}</div>
+            <div class="stars-row">${Array.from({length:3},(_,i)=>`<span class="star-item" style="color:${i<stars?'#F59E0B':'#E2E8F0'}">${i<stars?'⭐':'☆'}</span>`).join('')}</div>
+            <button class="btn btn-success btn-lg" style="margin-top:24px;" onclick="finishModule()">🚀 Concluir Módulo! +80 XP</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // LÓGICA BASE
+    function answerQuiz(qIdx, optIdx) {
+      const q = QUIZ_QUESTIONS[qIdx];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      const correct = optIdx === q.correct;
+      if (correct) quizScore++;
+      quizAnswers[qIdx] = { selected: optIdx, correct: q.correct };
+      document.getElementById(`option-${optIdx}`).classList.add(correct?'correct':'incorrect');
+      if (!correct) document.getElementById(`option-${q.correct}`).classList.add('correct');
+      const fb = document.getElementById('quiz-feedback');
+      fb.innerHTML = `<span class="quiz-feedback-icon">${correct?'✅':'❌'}</span><div class="quiz-feedback-text"><strong>${correct?'Correto! 🎉':'Oops!'}</strong><div style="margin-top:4px;">${q.explanation}</div></div>`;
+      fb.className = `quiz-feedback show ${correct?'correct':'incorrect'}`;
+      App.playSound(correct?'correct':'incorrect');
+      setTimeout(renderCurrentStep, 2200);
+    }
+    function finishModule() {
+      const pct = Math.round((quizScore/QUIZ_QUESTIONS.length)*100);
+      App.saveQuizScore(MODULE_ID, pct);
+      App.completeModule(MODULE_ID, pct);
+      App.showModuleComplete(MODULE_ID, pct);
+    }
+    function renderCurrentStep() {
+      document.getElementById('step-content').innerHTML = STEPS[currentStep].render();
+      let html = '';
+      STEPS.forEach((_,i) => {
+        html += `<div class="step-dot ${i<currentStep?'done':i===currentStep?'active':'pending'}"></div>`;
+        if (i<STEPS.length-1) html += `<div class="step-line ${i<currentStep?'done':''}"></div>`;
+      });
+      document.getElementById('step-progress').innerHTML = html;
+      document.getElementById('step-label').textContent = `Passo ${currentStep+1}/${STEPS.length}`;
+      document.getElementById('footer-step').textContent = `Passo ${currentStep+1} de ${STEPS.length}: ${STEPS[currentStep].title}`;
+      document.getElementById('btn-prev').style.display = currentStep>0?'inline-flex':'none';
+      document.getElementById('btn-next').style.display = (currentStep===3 && Object.keys(quizAnswers).length>=QUIZ_QUESTIONS.length) || (currentStep===2 && currentEmail < EMAILS.length)?'none':'inline-flex';
+      const state = App.loadState();
+      if (state) document.getElementById('nav-xp').textContent = state.totalXP||0;
+    }
+    function nextStep() {
+      if (currentStep < STEPS.length-1) {
+        if (currentStep < 2) App.completeStep(MODULE_ID, currentStep, 10);
+        currentStep++;
+        renderCurrentStep();
+        window.scrollTo({top:0,behavior:'smooth'});
+        App.playSound('click');
+      }
+    }
+    function prevStep() { if (currentStep>0) { currentStep--; renderCurrentStep(); window.scrollTo({top:0,behavior:'smooth'}); } }
+
+    const HELPS = [
+      {title:'❓ Testador de Senha',body:'Digite uma senha e veja a barra colorida. Tente colocar letras grandes, números e símbolos para ficar verde!'},
+      {title:'❓ Phishing',body:'Sempre desconfie. O banco nunca vai te mandar um e-mail com um botão gigante "CLIQUE AQUI PARA NÃO PERDER SEU DINHEIRO". Isso é golpe!'},
+      {title:'❓ Detetive',body:'Olhe BEM para o endereço de e-mail do remetente (fica dentro dos sinais < e >). Se for do banco do brasil mas estiver escrito "@gmail.com" ou "@bancofalso.com", é golpe!'},
+      {title:'❓ Quiz',body:'Responda as perguntas baseadas no que aprendeu. Boa sorte!'}
+    ];
+    function showHelp() {
+      const h = HELPS[currentStep]||HELPS[0];
+      document.getElementById('help-title').innerHTML = h.title;
+      document.getElementById('help-body').innerHTML = h.body;
+      document.getElementById('help-modal').classList.add('active');
+    }
+    function closeHelp() { document.getElementById('help-modal').classList.remove('active'); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      App.requireStudent();
+      const progress = App.getModuleProgress(MODULE_ID);
+      currentStep = Math.min(progress.currentStep||0, STEPS.length-1);
+      if (progress.quizScore>0) { for(let i=0;i<QUIZ_QUESTIONS.length;i++) quizAnswers[i]=true; quizScore=Math.round((progress.quizScore/100)*QUIZ_QUESTIONS.length); currentEmail = EMAILS.length; }
+      renderCurrentStep();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Módulo 7 — Windows Básico</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <style>
+    body { background: var(--bg); }
+
+    /* ===== SIMULADOR DO WINDOWS ===== */
+    .win-sim-container {
+      width: 100%; max-width: 800px; margin: 0 auto;
+      border: 2px solid #CBD5E1; border-radius: 8px;
+      overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      height: 500px; position: relative; background: url('https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?auto=format&fit=crop&w=800&q=80') center/cover;
+    }
+    
+    .desktop-icons {
+      padding: 16px; display: flex; flex-direction: column; gap: 16px; align-items: flex-start;
+    }
+    .desktop-icon {
+      width: 70px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 8px; border-radius: 4px; cursor: pointer; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      border: 1px solid transparent; text-align: center;
+    }
+    .desktop-icon:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); }
+    .desktop-icon i { font-size: 32px; }
+    .desktop-icon span { font-size: 11px; line-height: 1.2; }
+
+    /* Barra de Tarefas */
+    .taskbar {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px);
+      display: flex; align-items: center; padding: 0 8px; justify-content: space-between;
+      z-index: 100;
+    }
+    .tb-left { display: flex; align-items: center; gap: 4px; }
+    .tb-btn {
+      width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; cursor: pointer; color: white; font-size: 20px; transition: 0.2s;
+    }
+    .tb-btn:hover { background: rgba(255,255,255,0.1); }
+    .tb-btn.active { background: rgba(255,255,255,0.15); border-bottom: 2px solid #60A5FA; }
+    .start-btn { color: #60A5FA; }
+
+    .tb-right { display: flex; align-items: center; color: white; font-size: 12px; gap: 12px; padding-right: 8px;}
+    
+    /* Menu Iniciar */
+    .start-menu {
+      position: absolute; bottom: 56px; left: 8px; width: 320px; height: 400px;
+      background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px);
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 0 20px rgba(0,0,0,0.5); display: none; flex-direction: column;
+      z-index: 99; overflow: hidden;
+    }
+    .start-menu.open { display: flex; animation: slideUp 0.2s ease; }
+    .sm-search { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sm-search input { width: 100%; padding: 8px 12px; border-radius: 4px; border: none; background: rgba(255,255,255,0.1); color: white; outline: none;}
+    .sm-body { flex: 1; padding: 16px; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-content: start;}
+    .sm-app { display: flex; flex-direction: column; align-items: center; gap: 8px; color: white; font-size: 11px; cursor: pointer; padding: 8px; border-radius: 4px; }
+    .sm-app:hover { background: rgba(255,255,255,0.1); }
+    .sm-app i { font-size: 24px; }
+    .sm-footer { padding: 12px 16px; background: rgba(15, 23, 42, 0.5); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); color: white;}
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Janela Simulada */
+    .sim-window {
+      position: absolute; top: 40px; left: 100px; width: 500px; height: 350px;
+      background: white; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: none; flex-direction: column; overflow: hidden; z-index: 50;
+      border: 1px solid #CBD5E1;
+    }
+    .sw-titlebar {
+      background: #F1F5F9; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;
+      user-select: none; border-bottom: 1px solid #CBD5E1;
+    }
+    .sw-controls { display: flex; gap: 8px; }
+    .sw-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer; font-size: 14px; border-radius: 4px; }
+    .sw-btn:hover { background: #E2E8F0; }
+    .sw-btn.close:hover { background: #EF4444; color: white; }
+    .sw-content { flex: 1; padding: 24px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #64748B;}
+
+    /* Missão UI */
+    .mission-hud {
+      background: var(--primary-ultra-light); border: 1px dashed var(--primary);
+      padding: 16px; border-radius: var(--radius); margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="module-nav">
+    <a href="../dashboard.html" style="font-size:22px;text-decoration:none;" title="Dashboard">🏠</a>
+    <div class="module-nav-title">🪟 Módulo 7 — Windows Básico</div>
+    <div class="step-progress" id="step-progress"></div>
+    <div class="step-label" id="step-label">Passo 1/4</div>
+    <div class="xp-badge" style="font-size:13px;">⭐ <span id="nav-xp">0</span></div>
+  </nav>
+
+  <div class="module-container">
+    <div id="step-content"></div>
+  </div>
+
+  <div class="module-footer">
+    <div class="module-footer-info"><span id="footer-step">Passo 1 de 4</span></div>
+    <div class="module-footer-actions">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()" style="display:none;">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Próximo →</button>
+    </div>
+  </div>
+
+  <button class="help-fab" onclick="showHelp()">❓</button>
+  <div class="modal-custom" id="help-modal">
+    <div class="modal-box">
+      <div class="modal-box-header">
+        <h3 id="help-title">❓ Ajuda</h3>
+        <button class="modal-close" onclick="closeHelp()">✕</button>
+      </div>
+      <div class="modal-box-body" id="help-body"></div>
+      <div class="modal-box-footer"><button class="btn btn-primary" onclick="closeHelp()">Entendi!</button></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../js/app.js"></script>
+  <script>
+    const MODULE_ID = 7;
+    let currentStep = 0;
+    let quizAnswers = {};
+    let quizScore = 0;
+
+    let simStage = 0; // 0=start, 1=open app, 2=minimize, 3=close
+    const SIM_MISSIONS = [
+      { text: '1. Clique no botão Iniciar (ícone do Windows na barra inferior).' },
+      { text: '2. Abra o aplicativo "Calculadora".' },
+      { text: '3. Minimize a janela (botão do traço - no topo direito).' },
+      { text: '4. Restaure a janela pela barra de tarefas e FECHE (botão X vermelho).' }
+    ];
+
+    // QUIZ
+    const QUIZ_QUESTIONS = [
+      { question: 'Como é chamada a tela principal que aparece logo após ligar o Windows?', options: ['Painel de Controle', 'Área de Trabalho (Desktop)', 'Menu Iniciar', 'Barra de Tarefas'], correct: 1, explanation: 'Área de Trabalho (Desktop) é a sua "mesa" virtual, onde ficam os ícones principais.' },
+      { question: 'Para que serve a Barra de Tarefas (a barra na parte inferior da tela)?', options: ['Apenas para mostrar as horas', 'Para mostrar os programas abertos e acessar atalhos rápidos', 'Para desligar o monitor', 'Para digitar textos'], correct: 1, explanation: 'Ela abriga o Menu Iniciar, os botões de programas que estão em uso, atalhos, relógio e volume.' },
+      { question: 'O que faz o botão de "Minimizar" (-)?', options: ['Fecha o programa e você perde tudo', 'Deixa a janela bem pequena no meio da tela', 'Esconde a janela na Barra de Tarefas, mas o programa continua aberto', 'Desliga o computador'], correct: 2, explanation: 'Minimizar "esconde" a janela lá em baixo na Barra de Tarefas para você fazer outra coisa, sem fechar o app.' },
+      { question: 'Onde você clica para Desligar ou Reiniciar o computador corretamente?', options: ['No botão Iniciar > Botão de Energia', 'Puxando o computador da tomada', 'No botão X vermelho das janelas', 'Pressionando a tecla Esc várias vezes'], correct: 0, explanation: 'Sempre desligue pelo Menu Iniciar para que o Windows salve tudo e não corrompa arquivos!' },
+    ];
+
+    const STEPS = [
+      { title:'🖥️ A Área de Trabalho', render: renderStep1 },
+      { title:'🪟 Menu e Janelas', render: renderStep2 },
+      { title:'🎮 Prática do Windows', render: renderStep3 },
+      { title:'✅ Quiz Final', render: renderStep4 },
+    ];
+
+    // ===== PASSO 1 =====
+    function renderStep1() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#2563EB,#1E40AF);">
+            <div class="hero-badge">🖥️ Interface — Passo 1 de 4</div>
+            <h2>A Área de Trabalho e a Barra de Tarefas</h2>
+            <p>Conhecendo sua "mesa" virtual.</p>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:24px; margin-top:24px;">
+            <div class="card">
+              <div class="card-body" style="display:flex; gap:24px; align-items:center;">
+                <div style="font-size:64px;">🖼️</div>
+                <div>
+                  <h3 style="margin-bottom:8px;">A Área de Trabalho (Desktop)</h3>
+                  <p style="color:var(--text-secondary); line-height:1.5;">
+                    Assim que você liga o computador, aparece a Área de Trabalho. É o fundo da tela (geralmente com uma foto bonita) onde você pode colocar atalhos de programas e arquivos que usa com frequência, igual a uma mesa de escritório real.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-body" style="display:flex; gap:24px; align-items:center;">
+                <div style="font-size:64px;">➖</div>
+                <div>
+                  <h3 style="margin-bottom:8px;">A Barra de Tarefas</h3>
+                  <p style="color:var(--text-secondary); line-height:1.5;">
+                    A barra longa na parte de baixo da tela. É o "painel de controle" rápido. Nela você encontra:
+                  </p>
+                  <ul style="margin-top:12px; margin-left:20px; color:var(--text-secondary);">
+                    <li>O botão Iniciar (à esquerda).</li>
+                    <li>Ícones de programas que estão <strong>abertos agora</strong>.</li>
+                    <li>Notificações, Relógio e Volume (à direita).</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== PASSO 2 =====
+    function renderStep2() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);">
+            <div class="hero-badge">🪟 Operação — Passo 2 de 4</div>
+            <h2>O Menu Iniciar e as Janelas</h2>
+            <p>O coração do Windows.</p>
+          </div>
+
+          <div style="margin-top:24px; display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="card">
+              <div class="card-body">
+                <div style="font-size:40px; margin-bottom:12px;">🪟</div>
+                <h3>Menu Iniciar</h3>
+                <p style="color:var(--text-secondary); line-height:1.5; margin-top:8px;">
+                  É a porta de entrada para tudo no computador. Ao clicar nele, você pode:
+                </p>
+                <ul style="margin-top:12px; margin-left:20px; color:var(--text-secondary); font-size:14px;">
+                  <li>Procurar qualquer programa.</li>
+                  <li>Acessar as Configurações.</li>
+                  <li><strong>Desligar</strong> ou Reiniciar o computador da forma correta.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-body">
+                <div style="font-size:40px; margin-bottom:12px;">🔲</div>
+                <h3>Controle de Janelas</h3>
+                <p style="color:var(--text-secondary); line-height:1.5; margin-top:8px;">
+                  Todo programa abre dentro de um quadrado chamado Janela. No canto superior direito existem 3 botões mágicos:
+                </p>
+                <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+                  <div style="display:flex; gap:12px; align-items:center; background:#F8FAFC; padding:8px; border-radius:4px;">
+                    <button style="border:none;background:#CBD5E1;width:24px;height:24px;font-size:12px;">➖</button>
+                    <span style="font-size:13px; color:#334155;"><strong>Minimizar:</strong> Esconde na barra de tarefas.</span>
+                  </div>
+                  <div style="display:flex; gap:12px; align-items:center; background:#F8FAFC; padding:8px; border-radius:4px;">
+                    <button style="border:none;background:#CBD5E1;width:24px;height:24px;font-size:12px;">🔲</button>
+                    <span style="font-size:13px; color:#334155;"><strong>Maximizar:</strong> Preenche a tela toda.</span>
+                  </div>
+                  <div style="display:flex; gap:12px; align-items:center; background:#FEF2F2; padding:8px; border-radius:4px;">
+                    <button style="border:none;background:#EF4444;color:white;width:24px;height:24px;font-size:12px;">❌</button>
+                    <span style="font-size:13px; color:#991B1B;"><strong>Fechar:</strong> Encerra o programa.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== PASSO 3: SIMULADOR =====
+    function renderStep3() {
+      simStage = 0;
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#10B981,#059669);">
+            <div class="hero-badge">🎮 Simulação — Passo 3 de 4</div>
+            <h2>Treinamento Prático</h2>
+            <p>Use o Windows simulado abaixo para completar as tarefas.</p>
+          </div>
+
+          <div class="mission-hud" id="mission-hud" style="margin-top:24px;">
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Missão Atual</div>
+              <div style="font-size:18px; font-weight:800; color:var(--primary-dark);" id="mission-text">${SIM_MISSIONS[0].text}</div>
+            </div>
+            <div style="font-size:32px;">🎯</div>
+          </div>
+
+          <div class="win-sim-container" id="win-desktop" onclick="closeStartMenu()">
+            
+            <div class="desktop-icons">
+              <div class="desktop-icon">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Lixeira</span>
+              </div>
+              <div class="desktop-icon">
+                <i class="fa-solid fa-folder"></i>
+                <span>Meus Docs</span>
+              </div>
+            </div>
+
+            <!-- Janela do App -->
+            <div class="sim-window" id="sim-app">
+              <div class="sw-titlebar">
+                <div style="font-size:13px;"><i class="fa-solid fa-calculator" style="margin-right:6px;"></i> Calculadora</div>
+                <div class="sw-controls">
+                  <button class="sw-btn" onclick="simMinimize()">➖</button>
+                  <button class="sw-btn">🔲</button>
+                  <button class="sw-btn close" onclick="simClose()">❌</button>
+                </div>
+              </div>
+              <div class="sw-content">
+                Calculadora Aberta!
+              </div>
+            </div>
+
+            <!-- Menu Iniciar -->
+            <div class="start-menu" id="start-menu" onclick="event.stopPropagation()">
+              <div class="sm-search">
+                <input type="text" placeholder="Pesquisar aplicativos e arquivos">
+              </div>
+              <div class="sm-body">
+                <div class="sm-app" onclick="simOpenApp()">
+                  <i class="fa-solid fa-calculator" style="color:#60A5FA;"></i>
+                  <span>Calculadora</span>
+                </div>
+                <div class="sm-app">
+                  <i class="fa-solid fa-envelope" style="color:#F87171;"></i>
+                  <span>E-mail</span>
+                </div>
+                <div class="sm-app">
+                  <i class="fa-solid fa-camera" style="color:#34D399;"></i>
+                  <span>Câmera</span>
+                </div>
+              </div>
+              <div class="sm-footer">
+                <div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-user-circle"></i> Aluno</div>
+                <i class="fa-solid fa-power-off" style="cursor:pointer;" title="Desligar"></i>
+              </div>
+            </div>
+
+            <!-- Barra de Tarefas -->
+            <div class="taskbar" onclick="event.stopPropagation()">
+              <div class="tb-left">
+                <div class="tb-btn start-btn" onclick="toggleStartMenu()" id="btn-start">
+                  <i class="fa-brands fa-windows"></i>
+                </div>
+                <div class="tb-btn" id="tb-app-icon" style="display:none;" onclick="simRestoreApp()">
+                  <i class="fa-solid fa-calculator"></i>
+                </div>
+              </div>
+              <div class="tb-right">
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-volume-high"></i>
+                <div style="text-align:right;">
+                  14:30<br>24/06/2026
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    // Lógica do Simulador
+    function updateSimMission() {
+      if (simStage < SIM_MISSIONS.length) {
+        document.getElementById('mission-text').textContent = SIM_MISSIONS[simStage].text;
+      } else {
+        document.getElementById('mission-hud').style.background = 'var(--success-light)';
+        document.getElementById('mission-hud').style.borderColor = 'var(--success)';
+        document.getElementById('mission-text').textContent = '✅ Todas as missões cumpridas!';
+        App.playSound('correct');
+        App.showToast('success', 'Perfeito!', 'Você dominou o básico do Windows!');
+        App.completeStep(MODULE_ID, 2, 20); // bônus
+        document.getElementById('btn-next').style.display = 'inline-flex';
+      }
+    }
+
+    function toggleStartMenu() {
+      App.playSound('click');
+      const menu = document.getElementById('start-menu');
+      menu.classList.toggle('open');
+      
+      if (simStage === 0 && menu.classList.contains('open')) {
+        simStage = 1;
+        updateSimMission();
+      }
+    }
+
+    function closeStartMenu() {
+      document.getElementById('start-menu').classList.remove('open');
+    }
+
+    function simOpenApp() {
+      App.playSound('click');
+      closeStartMenu();
+      const win = document.getElementById('sim-app');
+      win.style.display = 'flex';
+      
+      const tbIcon = document.getElementById('tb-app-icon');
+      tbIcon.style.display = 'flex';
+      tbIcon.classList.add('active');
+
+      if (simStage === 1) {
+        simStage = 2;
+        updateSimMission();
+      }
+    }
+
+    function simMinimize() {
+      App.playSound('click');
+      document.getElementById('sim-app').style.display = 'none';
+      document.getElementById('tb-app-icon').classList.remove('active');
+
+      if (simStage === 2) {
+        simStage = 3;
+        updateSimMission();
+      }
+    }
+
+    function simRestoreApp() {
+      if (simStage !== 3) return; // Só deixa restaurar se estiver na missão certa
+      App.playSound('click');
+      document.getElementById('sim-app').style.display = 'flex';
+      document.getElementById('tb-app-icon').classList.add('active');
+    }
+
+    function simClose() {
+      if (simStage !== 3) return;
+      App.playSound('click');
+      document.getElementById('sim-app').style.display = 'none';
+      document.getElementById('tb-app-icon').style.display = 'none';
+      simStage = 4;
+      updateSimMission();
+    }
+
+
+    // ===== PASSO 4: QUIZ =====
+    function renderStep4() {
+      const questionIndex = Object.keys(quizAnswers).length;
+      if (questionIndex >= QUIZ_QUESTIONS.length) return renderQuizResult();
+      const q = QUIZ_QUESTIONS[questionIndex];
+      const letters = ['A','B','C','D'];
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#059669,#047857);">
+            <div class="hero-badge">✅ Quiz — Passo 4 de 4</div>
+            <h2>Teste do Windows!</h2>
+          </div>
+          <div style="max-width:620px;margin:0 auto;">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(questionIndex/QUIZ_QUESTIONS.length)*100}%"></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${questionIndex+1}/${QUIZ_QUESTIONS.length}</span>
+            </div>
+            <div class="card">
+              <div class="card-body" style="padding:28px;">
+                <div class="quiz-question">${q.question}</div>
+                <div class="quiz-options">
+                  ${q.options.map((opt,i)=>`
+                    <div class="quiz-option" id="option-${i}" onclick="answerQuiz(${questionIndex},${i})">
+                      <div class="quiz-letter">${letters[i]}</div><span>${opt}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback"><span class="quiz-feedback-icon"></span><div class="quiz-feedback-text"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuizResult() {
+      const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+      const stars = pct>=80?3:pct>=60?2:1;
+      return `
+        <div class="module-section" style="text-align:center;">
+          <div class="card" style="max-width:500px;margin:40px auto;padding:40px 32px;">
+            <div style="font-size:72px;margin-bottom:16px;">${pct>=80?'🏆':pct>=60?'🌟':'📚'}</div>
+            <h2>${pct>=80?'Mestre do Windows!':pct>=60?'Muito Bem!':'Continue Praticando!'}</h2>
+            <div style="font-size:48px;font-weight:900;font-family:var(--font-heading);color:var(--primary);margin:16px 0;">${pct}%</div>
+            <div style="color:var(--text-secondary);margin-bottom:20px;">Acertou ${quizScore} de ${QUIZ_QUESTIONS.length}</div>
+            <div class="stars-row">${Array.from({length:3},(_,i)=>`<span class="star-item" style="color:${i<stars?'#F59E0B':'#E2E8F0'}">${i<stars?'⭐':'☆'}</span>`).join('')}</div>
+            <button class="btn btn-success btn-lg" style="margin-top:24px;" onclick="finishModule()">🚀 Concluir Módulo! +80 XP</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // LÓGICA BASE
+    function answerQuiz(qIdx, optIdx) {
+      const q = QUIZ_QUESTIONS[qIdx];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      const correct = optIdx === q.correct;
+      if (correct) quizScore++;
+      quizAnswers[qIdx] = { selected: optIdx, correct: q.correct };
+      document.getElementById(`option-${optIdx}`).classList.add(correct?'correct':'incorrect');
+      if (!correct) document.getElementById(`option-${q.correct}`).classList.add('correct');
+      const fb = document.getElementById('quiz-feedback');
+      fb.innerHTML = `<span class="quiz-feedback-icon">${correct?'✅':'❌'}</span><div class="quiz-feedback-text"><strong>${correct?'Correto! 🎉':'Oops!'}</strong><div style="margin-top:4px;">${q.explanation}</div></div>`;
+      fb.className = `quiz-feedback show ${correct?'correct':'incorrect'}`;
+      App.playSound(correct?'correct':'incorrect');
+      setTimeout(renderCurrentStep, 2200);
+    }
+    function finishModule() {
+      const pct = Math.round((quizScore/QUIZ_QUESTIONS.length)*100);
+      App.saveQuizScore(MODULE_ID, pct);
+      App.completeModule(MODULE_ID, pct);
+      App.showModuleComplete(MODULE_ID, pct);
+    }
+    function renderCurrentStep() {
+      document.getElementById('step-content').innerHTML = STEPS[currentStep].render();
+      let html = '';
+      STEPS.forEach((_,i) => {
+        html += `<div class="step-dot ${i<currentStep?'done':i===currentStep?'active':'pending'}"></div>`;
+        if (i<STEPS.length-1) html += `<div class="step-line ${i<currentStep?'done':''}"></div>`;
+      });
+      document.getElementById('step-progress').innerHTML = html;
+      document.getElementById('step-label').textContent = `Passo ${currentStep+1}/${STEPS.length}`;
+      document.getElementById('footer-step').textContent = `Passo ${currentStep+1} de ${STEPS.length}: ${STEPS[currentStep].title}`;
+      document.getElementById('btn-prev').style.display = currentStep>0?'inline-flex':'none';
+      document.getElementById('btn-next').style.display = (currentStep===3 && Object.keys(quizAnswers).length>=QUIZ_QUESTIONS.length) || (currentStep===2 && simStage < SIM_MISSIONS.length)?'none':'inline-flex';
+      const state = App.loadState();
+      if (state) document.getElementById('nav-xp').textContent = state.totalXP||0;
+    }
+    function nextStep() {
+      if (currentStep < STEPS.length-1) {
+        if (currentStep < 2) App.completeStep(MODULE_ID, currentStep, 10);
+        currentStep++;
+        renderCurrentStep();
+        window.scrollTo({top:0,behavior:'smooth'});
+        App.playSound('click');
+      }
+    }
+    function prevStep() { if (currentStep>0) { currentStep--; renderCurrentStep(); window.scrollTo({top:0,behavior:'smooth'}); } }
+
+    const HELPS = [
+      {title:'❓ Área de Trabalho e Barra de Tarefas',body:'Pense nisso como sua mesa de escritório. Área de Trabalho é o fundo da tela. Barra de Tarefas é a barrinha preta ou branca que fica colada lá embaixo.'},
+      {title:'❓ Janelas',body:'Se o programa está atrapalhando mas você quer continuar usando depois, clique no traço (-) para Minimizar. Se quer fechar de vez, clique no (X) vermelho.'},
+      {title:'❓ Simulador',body:'Siga as instruções na tela. O botão Iniciar fica na barra preta inferior, à esquerda (ícone de janelinha). Clique nele!'},
+      {title:'❓ Quiz',body:'Responda as perguntas baseadas no que aprendeu. Boa sorte!'}
+    ];
+    function showHelp() {
+      const h = HELPS[currentStep]||HELPS[0];
+      document.getElementById('help-title').innerHTML = h.title;
+      document.getElementById('help-body').innerHTML = h.body;
+      document.getElementById('help-modal').classList.add('active');
+    }
+    function closeHelp() { document.getElementById('help-modal').classList.remove('active'); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      App.requireStudent();
+      const progress = App.getModuleProgress(MODULE_ID);
+      currentStep = Math.min(progress.currentStep||0, STEPS.length-1);
+      if (progress.quizScore>0) { for(let i=0;i<QUIZ_QUESTIONS.length;i++) quizAnswers[i]=true; quizScore=Math.round((progress.quizScore/100)*QUIZ_QUESTIONS.length); simStage = SIM_MISSIONS.length; }
+      renderCurrentStep();
+    });
+  </script>
+</body>
+</html>

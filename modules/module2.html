@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Módulo 2 — Conhecendo o Teclado</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <style>
+    body { background: var(--bg); }
+
+    /* ===== TECLADO VIRTUAL ===== */
+    .virtual-keyboard {
+      background: #2A2A2A;
+      border-radius: 16px;
+      padding: 20px 16px 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .keyboard-row {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 5px;
+      justify-content: center;
+    }
+    .key {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 38px;
+      height: 38px;
+      padding: 2px 4px;
+      background: linear-gradient(180deg, #4E4E4E 0%, #3A3A3A 100%);
+      border: 1px solid #666;
+      border-bottom: 3px solid #1A1A1A;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #E8E8E8;
+      cursor: pointer;
+      transition: all 0.08s ease;
+      position: relative;
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    .key:hover { background: linear-gradient(180deg, #5E5E5E, #4A4A4A); }
+    .key.active {
+      background: linear-gradient(180deg, #4F46E5, #3730A3) !important;
+      border-color: #3730A3;
+      border-bottom-color: #1e1a5e;
+      color: white;
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+      box-shadow: 0 0 12px rgba(79,70,229,0.5);
+    }
+    .key.key-fn     { background: linear-gradient(180deg, #3A3A6A, #2A2A5A); color: #A5B4FC; }
+    .key.key-mod    { background: linear-gradient(180deg, #3A5A3A, #2A4A2A); color: #86EFAC; }
+    .key.key-enter  { background: linear-gradient(180deg, #5A3A3A, #4A2A2A); color: #FCA5A5; }
+    .key.key-space  { background: linear-gradient(180deg, #5A5A5A, #4A4A4A); }
+    .key .key-top   { font-size: 9px;  line-height: 1; }
+    .key .key-bot   { font-size: 11px; line-height: 1; font-weight: 800; }
+
+    /* Tamanhos especiais */
+    .key-w15  { min-width: 52px; }
+    .key-w2   { min-width: 76px; }
+    .key-w225 { min-width: 84px; }
+    .key-w275 { min-width: 104px; }
+    .key-w3   { min-width: 114px; }
+    .key-w6   { min-width: 240px; }
+    .key-h2   { height: 84px; }
+
+    /* Info box da tecla */
+    .key-info-box {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-lg);
+      border: 2px solid var(--primary-light);
+      text-align: center;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+    .key-info-name {
+      font-size: 28px;
+      font-weight: 900;
+      font-family: var(--font-heading);
+      color: var(--primary);
+    }
+    .key-info-function {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      max-width: 320px;
+    }
+    .key-info-category {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--primary-ultra-light);
+      color: var(--primary);
+    }
+    /* Pulse para indicar que pode digitar */
+    @keyframes pulseKB {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(79,70,229,0.4); }
+      50%       { box-shadow: 0 0 0 8px rgba(79,70,229,0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="module-nav">
+    <a href="../dashboard.html" style="font-size:22px;text-decoration:none;" title="Dashboard">🏠</a>
+    <div class="module-nav-title">⌨️ Módulo 2 — Conhecendo o Teclado</div>
+    <div class="step-progress" id="step-progress"></div>
+    <div class="step-label" id="step-label">Passo 1/5</div>
+    <div class="xp-badge" style="font-size:13px;">⭐ <span id="nav-xp">0</span></div>
+  </nav>
+
+  <div class="module-container">
+    <div id="step-content"></div>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="module-footer">
+    <div class="module-footer-info"><span id="footer-step">Passo 1 de 5</span></div>
+    <div class="module-footer-actions">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()" style="display:none;">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Próximo →</button>
+    </div>
+  </div>
+
+  <!-- Ajuda -->
+  <button class="help-fab" onclick="showHelp()" title="Como Fazer?">❓</button>
+  <div class="modal-custom" id="help-modal">
+    <div class="modal-box">
+      <div class="modal-box-header">
+        <h3 id="help-title">❓ Ajuda</h3>
+        <button class="modal-close" onclick="closeHelp()">✕</button>
+      </div>
+      <div class="modal-box-body" id="help-body"></div>
+      <div class="modal-box-footer">
+        <button class="btn btn-primary" onclick="closeHelp()">Entendi! 👍</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../js/app.js"></script>
+  <script>
+    const MODULE_ID = 2;
+    let currentStep = 0;
+    let quizAnswers = {};
+    let quizScore = 0;
+    let stepUnlocked = false;
+    let clickedKeys = 0;
+    let kbListenerActive = false;
+
+    // ===== INFORMAÇÕES DAS TECLAS =====
+    const KEY_INFO = {
+      'Escape':     { name: 'Esc', cat: 'Especial',  func: 'Cancela uma ação ou sai de um menu. É a tecla de "escape"!' },
+      'F1':         { name: 'F1', cat: 'Função', func: 'Abre a Ajuda do programa atual.' },
+      'F2':         { name: 'F2', cat: 'Função', func: 'Renomeia o arquivo ou pasta selecionada.' },
+      'F3':         { name: 'F3', cat: 'Função', func: 'Abre a função de busca no Explorer.' },
+      'F4':         { name: 'F4', cat: 'Função', func: 'Exibe a barra de endereço (combinado com Alt fecha a janela).' },
+      'F5':         { name: 'F5', cat: 'Função', func: 'Atualiza/recarrega a página ou janela.' },
+      'F11':        { name: 'F11', cat: 'Função', func: 'Ativa/desativa a tela cheia no navegador.' },
+      'F12':        { name: 'F12', cat: 'Função', func: 'Abre as ferramentas de desenvolvedor no navegador.' },
+      'Backquote':  { name: '` ~', cat: 'Alfanumérico', func: 'Acento grave e til. Usado em letras como ã, õ.' },
+      'Digit1':     { name: '1 !', cat: 'Alfanumérico', func: 'Número 1 e exclamação (com Shift).' },
+      'Digit2':     { name: '2 @', cat: 'Alfanumérico', func: 'Número 2 e arroba (com Shift). Usado em e-mails!' },
+      'Digit3':     { name: '3 #', cat: 'Alfanumérico', func: 'Número 3 e cerquilha/hashtag (com Shift).' },
+      'Backspace':  { name: 'Backspace', cat: 'Edição', func: 'Apaga o caractere à ESQUERDA do cursor. "Volta" um caractere.' },
+      'Delete':     { name: 'Delete', cat: 'Edição', func: 'Apaga o caractere à DIREITA do cursor, ou exclui o arquivo selecionado.' },
+      'Tab':        { name: 'Tab ⇥', cat: 'Navegação', func: 'Avança para o próximo campo ou adiciona uma tabulação (espaço maior).' },
+      'CapsLock':   { name: 'Caps Lock', cat: 'Modificador', func: 'Trava as letras em maiúsculas. A luz no teclado indica se está ativo.' },
+      'ShiftLeft':  { name: 'Shift ⇧', cat: 'Modificador', func: 'Faz letras maiúsculas e acessa os símbolos de cima das teclas. Segure e pressione.' },
+      'ShiftRight': { name: 'Shift ⇧', cat: 'Modificador', func: 'Faz letras maiúsculas e acessa os símbolos de cima das teclas. Segure e pressione.' },
+      'ControlLeft':{ name: 'Ctrl', cat: 'Modificador', func: 'Usado em atalhos! Ctrl+C copia, Ctrl+V cola, Ctrl+Z desfaz...' },
+      'ControlRight':{ name: 'Ctrl', cat: 'Modificador', func: 'Usado em atalhos! Ctrl+C copia, Ctrl+V cola, Ctrl+Z desfaz...' },
+      'AltLeft':    { name: 'Alt', cat: 'Modificador', func: 'Usado em atalhos. Alt+Tab troca de janela, Alt+F4 fecha programa.' },
+      'AltRight':   { name: 'Alt Gr', cat: 'Modificador', func: 'Alt Gráfico — acessa caracteres especiais como @, €, etc.' },
+      'MetaLeft':   { name: '⊞ Windows', cat: 'Especial', func: 'Abre o Menu Iniciar do Windows. Combinado com outras teclas abre apps!' },
+      'Enter':      { name: 'Enter ↵', cat: 'Especial', func: 'Confirma uma ação, pula para a próxima linha, ou executa o botão selecionado.' },
+      'Space':      { name: 'Espaço', cat: 'Alfanumérico', func: 'Insere um espaço entre palavras. A maior tecla do teclado!' },
+      'ArrowUp':    { name: '↑', cat: 'Navegação', func: 'Move o cursor para cima ou sobe em menus.' },
+      'ArrowDown':  { name: '↓', cat: 'Navegação', func: 'Move o cursor para baixo ou desce em menus.' },
+      'ArrowLeft':  { name: '←', cat: 'Navegação', func: 'Move o cursor para a esquerda.' },
+      'ArrowRight': { name: '→', cat: 'Navegação', func: 'Move o cursor para a direita.' },
+      'Home':       { name: 'Home', cat: 'Navegação', func: 'Move o cursor para o início da linha.' },
+      'End':        { name: 'End', cat: 'Navegação', func: 'Move o cursor para o fim da linha.' },
+      'PageUp':     { name: 'PgUp', cat: 'Navegação', func: 'Rola a página para cima.' },
+      'PageDown':   { name: 'PgDn', cat: 'Navegação', func: 'Rola a página para baixo.' },
+      'Insert':     { name: 'Insert', cat: 'Especial', func: 'Alterna entre modo de inserção e sobreposição de texto.' },
+      'PrintScreen':{ name: 'PrtScn', cat: 'Especial', func: 'Captura uma screenshot (foto) da tela e salva na área de transferência.' },
+    };
+
+    // Mapa de código para tecla do teclado virtual
+    const CODE_TO_KEY_ID = {
+      'Escape':'k-esc','F1':'k-f1','F2':'k-f2','F3':'k-f3','F4':'k-f4',
+      'F5':'k-f5','F6':'k-f6','F7':'k-f7','F8':'k-f8','F9':'k-f9',
+      'F10':'k-f10','F11':'k-f11','F12':'k-f12',
+      'Backquote':'k-bq','Digit1':'k-1','Digit2':'k-2','Digit3':'k-3',
+      'Digit4':'k-4','Digit5':'k-5','Digit6':'k-6','Digit7':'k-7',
+      'Digit8':'k-8','Digit9':'k-9','Digit0':'k-0','Minus':'k-minus',
+      'Equal':'k-equal','Backspace':'k-bs',
+      'Tab':'k-tab','KeyQ':'k-q','KeyW':'k-w','KeyE':'k-e','KeyR':'k-r',
+      'KeyT':'k-t','KeyY':'k-y','KeyU':'k-u','KeyI':'k-i','KeyO':'k-o',
+      'KeyP':'k-p','BracketLeft':'k-br1','BracketRight':'k-br2','Backslash':'k-bsl',
+      'CapsLock':'k-caps','KeyA':'k-a','KeyS':'k-s','KeyD':'k-d','KeyF':'k-f',
+      'KeyG':'k-g','KeyH':'k-h','KeyJ':'k-j','KeyK':'k-k','KeyL':'k-l',
+      'Semicolon':'k-semi','Quote':'k-quot','Enter':'k-enter',
+      'ShiftLeft':'k-shiftl','KeyZ':'k-z','KeyX':'k-x','KeyC':'k-c',
+      'KeyV':'k-v','KeyB':'k-b','KeyN':'k-n','KeyM':'k-m',
+      'Comma':'k-comma','Period':'k-period','Slash':'k-slash','ShiftRight':'k-shiftr',
+      'ControlLeft':'k-ctrll','MetaLeft':'k-win','AltLeft':'k-altl',
+      'Space':'k-space','AltRight':'k-altr','ControlRight':'k-ctrlr',
+      'Insert':'k-ins','Home':'k-home','PageUp':'k-pgup',
+      'Delete':'k-del','End':'k-end','PageDown':'k-pgdn',
+      'ArrowUp':'k-up','ArrowLeft':'k-left','ArrowDown':'k-down','ArrowRight':'k-right',
+    };
+
+    // QUIZ
+    const QUIZ_QUESTIONS = [
+      {
+        question: 'Qual tecla apaga o caractere à ESQUERDA do cursor?',
+        options: ['Delete', 'Backspace', 'Esc', 'Insert'],
+        correct: 1,
+        explanation: 'O Backspace apaga o caractere à esquerda (antes) do cursor. O Delete apaga o caractere à direita (depois) do cursor.'
+      },
+      {
+        question: 'Para que serve a tecla Caps Lock?',
+        options: ['Abre o menu Iniciar','Fecha o programa atual','Trava as letras em maiúsculas','Deleta o arquivo selecionado'],
+        correct: 2,
+        explanation: 'Caps Lock trava o teclado para digitar em maiúsculas. Quando a luz do Caps Lock está acesa, tudo que você digita fica em MAIÚSCULO.'
+      },
+      {
+        question: 'Qual tecla é usada como base para atalhos como Ctrl+C e Ctrl+V?',
+        options: ['Alt', 'Shift', 'Tab', 'Ctrl (Control)'],
+        correct: 3,
+        explanation: 'A tecla Ctrl (Control) é usada em conjunto com outras teclas para criar atalhos: Ctrl+C (Copiar), Ctrl+V (Colar), Ctrl+Z (Desfazer)...'
+      },
+      {
+        question: 'Para que serve a tecla Tab?',
+        options: [
+          'Fecha o navegador',
+          'Apaga o texto selecionado',
+          'Avança para o próximo campo ou insere uma tabulação',
+          'Ativa o modo de tela cheia',
+        ],
+        correct: 2,
+        explanation: 'Tab avança para o próximo campo em formulários e insere um espaço de tabulação em editores de texto. Muito útil para navegar sem mouse!'
+      },
+      {
+        question: 'Qual tecla captura uma "foto" da tela?',
+        options: ['F5', 'Insert', 'Print Screen (PrtScn)', 'Home'],
+        correct: 2,
+        explanation: 'Print Screen captura a tela inteira. Alt+Print Screen captura apenas a janela ativa. A imagem fica na área de transferência — você pode colar com Ctrl+V!'
+      },
+      {
+        question: 'O que as teclas de navegação fazem?',
+        options: ['Aumentam o volume', 'Movem o cursor ou rolam a página sem usar o mouse', 'Fecham programas', 'Conectam à internet'],
+        correct: 1,
+        explanation: 'As setas, Home, End, Page Up e Page Down movem o cursor de texto ou a barra de rolagem da página.'
+      },
+      {
+        question: 'Para que serve a tecla Esc?',
+        options: ['Para salvar um arquivo', 'Para escrever em maiúsculas', 'Para cancelar uma ação, sair de telas cheias ou menus', 'Para desligar o computador'],
+        correct: 2,
+        explanation: 'A tecla Esc (Escape) é sua "saída de emergência". Ela cancela ações e fecha janelas pop-up ou modos de tela cheia.'
+      },
+      {
+        question: 'Qual tecla é frequentemente combinada com Alt para fechar um programa?',
+        options: ['F1', 'F4', 'Enter', 'Espaço'],
+        correct: 1,
+        explanation: 'O atalho Alt + F4 é mundialmente conhecido no Windows para fechar a janela ou programa ativo.'
+      },
+      {
+        question: 'O que acontece se você pressionar Shift + número 2 (em teclados ABNT2)?',
+        options: ['Você digita o número 2 normalmente', 'O computador desliga', 'O texto é apagado', 'Você digita o símbolo de arroba (@)'],
+        correct: 3,
+        explanation: 'A tecla Shift acessa o caractere superior das teclas duplas. O @ fica em cima do número 2!'
+      },
+      {
+        question: 'A tecla Enter serve principalmente para:',
+        options: ['Confirmar ações, enviar formulários ou pular de linha em textos', 'Deletar letras erradas', 'Desfazer a última ação', 'Mudar o idioma do teclado'],
+        correct: 0,
+        explanation: 'A tecla Enter confirma comandos, abre ícones selecionados e, ao digitar, cria um novo parágrafo (pula para a próxima linha).'
+      }
+    ];
+
+    const STEPS = [
+      { title:'📖 Grupos de Teclas',  render: renderStep1 },
+      { title:'⌨️ Teclado Interativo', render: renderStep2 },
+      { title:'🎯 Teclas Importantes', render: renderStep3 },
+      { title:'🔤 Simulador ao Vivo',  render: renderStep4 },
+      { title:'✅ Quiz Final',         render: renderStep5 },
+    ];
+
+    // ===== PASSO 1: GRUPOS DE TECLAS =====
+    function renderStep1() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#F857A6,#FF5858);">
+            <div class="hero-badge">📖 Teoria — Passo 1 de 5</div>
+            <h2>Conhecendo o Teclado</h2>
+            <p>O teclado é dividido em grupos de teclas, cada grupo com uma função específica.</p>
+          </div>
+
+          <div class="concept-grid stagger">
+            <div class="concept-card animate-fadeInUp">
+              <div class="concept-icon blue">🔢</div>
+              <div class="concept-title">Teclas Alfanuméricas</div>
+              <div class="concept-desc">Letras (A-Z) e números (0-9). São as teclas que você usa para digitar texto normalmente.</div>
+            </div>
+            <div class="concept-card animate-fadeInUp">
+              <div class="concept-icon purple">F1</div>
+              <div class="concept-title">Teclas de Função</div>
+              <div class="concept-desc">F1 até F12 na parte superior. Cada programa usa de forma diferente. F1 = Ajuda, F5 = Atualizar.</div>
+            </div>
+            <div class="concept-card animate-fadeInUp">
+              <div class="concept-icon yellow">⌨️</div>
+              <div class="concept-title">Teclas Modificadoras</div>
+              <div class="concept-desc">Shift, Ctrl, Alt e Windows. Combinadas com outras teclas criam atalhos poderosos!</div>
+            </div>
+            <div class="concept-card animate-fadeInUp">
+              <div class="concept-icon green">⬆️</div>
+              <div class="concept-title">Teclas de Navegação</div>
+              <div class="concept-desc">Setas (↑↓←→), Home, End, Page Up, Page Down. Movem o cursor sem usar o mouse.</div>
+            </div>
+            <div class="concept-card animate-fadeInUp">
+              <div class="concept-icon red">🔢</div>
+              <div class="concept-title">Teclado Numérico</div>
+              <div class="concept-desc">Bloco numérico no lado direito (em teclados completos). Ótimo para digitar números rapidamente!</div>
+            </div>
+            <div class="concept-card animate-fadeInUp">
+              <div class="concept-icon teal">✏️</div>
+              <div class="concept-title">Teclas de Edição</div>
+              <div class="concept-desc">Backspace, Delete, Insert, Enter, Tab, Esc. Controlam a edição de texto.</div>
+            </div>
+          </div>
+
+          <div class="info-box tip" style="margin-top:16px;">
+            <div class="info-box-title">💡 Dica de Ouro</div>
+            <div class="info-box-body">
+              O <strong>Shift</strong> + letra = maiúscula. <br>
+              O <strong>Shift</strong> + número = símbolo (ex: Shift+2 = @). <br>
+              Experimente pressionar Shift enquanto digita!
+            </div>
+          </div>
+          ${!stepUnlocked ? `
+            <div style="text-align:center; margin-top:32px;">
+              <button class="btn btn-outline" onclick="this.style.display='none'; unlockNext();" style="border-width:2px; font-weight:bold;">✅ Marcar como lido e entendido</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ===== PASSO 2: TECLADO VISUAL CLICÁVEL =====
+    function renderStep2() {
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#4FACFE,#00F2FE);">
+            <div class="hero-badge">⌨️ Visual — Passo 2 de 5</div>
+            <h2>Teclado Visual</h2>
+            <p>Clique em qualquer tecla para ver seu nome e função!</p>
+          </div>
+
+          <div id="key-info" class="key-info-box" style="margin-bottom:24px; animation:pulseKB 2s 3;">
+            <div style="font-size:40px;">⌨️</div>
+            <div class="key-info-name">Clique em uma Tecla!</div>
+            <div class="key-info-function">Selecione pelo menos 3 teclas no teclado abaixo para prosseguir.</div>
+          </div>
+
+          ${buildKeyboard(true)}
+        </div>
+      `;
+    }
+
+    // ===== PASSO 3: TECLAS IMPORTANTES =====
+    function renderStep3() {
+      const importantKeys = [
+        { key:'Enter ↵', icon:'↵', desc:'Confirma ações, pula linhas. A tecla mais usada!', color:'red' },
+        { key:'Esc', icon:'⎋', desc:'Cancela, fecha janelas e menus. "Saída de emergência"!', color:'orange' },
+        { key:'Backspace', icon:'⌫', desc:'Apaga o caractere anterior (à esquerda do cursor).', color:'yellow' },
+        { key:'Delete', icon:'⌦', desc:'Apaga o próximo caractere (à direita) ou exclui arquivo.', color:'yellow' },
+        { key:'Tab ⇥', icon:'⇥', desc:'Navega entre campos; insere tabulação (espaço maior).', color:'blue' },
+        { key:'Caps Lock', icon:'⇪', desc:'Trava letras maiúsculas. Luz acesa = maiúsculas ativas.', color:'purple' },
+        { key:'Shift ⇧', icon:'⇧', desc:'Maiúsculas temporárias e acesso aos símbolos superiores.', color:'green' },
+        { key:'Ctrl', icon:'⌃', desc:'Base dos atalhos: Ctrl+C, Ctrl+V, Ctrl+Z, Ctrl+S...', color:'teal' },
+        { key:'Alt', icon:'⌥', desc:'Atalhos como Alt+Tab (troca janelas) e Alt+F4 (fecha app).', color:'pink' },
+        { key:'⊞ Windows', icon:'⊞', desc:'Abre o Menu Iniciar. ⊞+E = Explorer, ⊞+D = Desktop.', color:'blue' },
+      ];
+
+      const colorMap = { red:'#FEE2E2',orange:'#FFF7ED',yellow:'#FEF9C3',blue:'#DBEAFE',purple:'#F5F3FF',green:'#DCFCE7',teal:'#CCFBF1',pink:'#FCE7F3' };
+      const colorText = { red:'#991B1B',orange:'#9A3412',yellow:'#713F12',blue:'#1E40AF',purple:'#5B21B6',green:'#14532D',teal:'#115E59',pink:'#831843' };
+
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#667EEA,#764BA2);">
+            <div class="hero-badge">🎯 Teclas — Passo 3 de 5</div>
+            <h2>Teclas Essenciais</h2>
+            <p>Estas são as teclas que você mais vai usar! Memorize cada uma delas.</p>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px;" class="stagger">
+            ${importantKeys.map(k => `
+              <div class="animate-fadeInUp" style="
+                background:${colorMap[k.color]||'#F8FAFC'};
+                border-radius:var(--radius-md);
+                padding:18px 20px;
+                display:flex; align-items:center; gap:14px;
+                transition:var(--transition);
+                border:1px solid transparent;
+              " onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--shadow-md)'"
+                 onmouseout="this.style.transform='';this.style.boxShadow=''">
+                <div style="
+                  width:52px; height:52px; border-radius:10px;
+                  background:${colorText[k.color]||'#1E293B'};
+                  display:flex; align-items:center; justify-content:center;
+                  font-size:20px; color:white; flex-shrink:0; font-family:monospace;
+                  font-weight:800; box-shadow:0 4px 0 rgba(0,0,0,0.2);
+                ">${k.icon}</div>
+                <div>
+                  <div style="font-weight:800;font-family:var(--font-heading);font-size:15px;color:${colorText[k.color]||'#1E293B'}">${k.key}</div>
+                  <div style="font-size:13px;color:var(--text-secondary);margin-top:3px;line-height:1.4">${k.desc}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          ${!stepUnlocked ? `
+            <div style="text-align:center; margin-top:32px;">
+              <button class="btn btn-outline" onclick="this.style.display='none'; unlockNext();" style="border-width:2px; font-weight:bold;">✅ Marcar como lido e entendido</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ===== PASSO 4: SIMULADOR AO VIVO =====
+    function renderStep4() {
+      kbListenerActive = true;
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#11998E,#38EF7D); color:white;">
+            <div class="hero-badge" style="background:rgba(255,255,255,0.2);">🔤 Simulador — Passo 4 de 5</div>
+            <h2 style="color:white;">Simulador de Teclado ao Vivo!</h2>
+            <p style="color:rgba(255,255,255,0.9);">Pressione qualquer tecla do seu teclado real e veja ela iluminar no teclado virtual!</p>
+          </div>
+
+          <div id="key-info" class="key-info-box" style="margin-bottom:24px; animation:pulseKB 2s infinite;">
+            <div style="font-size:40px;">⌨️</div>
+            <div class="key-info-name" id="info-name">Aguardando...</div>
+            <div class="key-info-function" id="info-func">Pressione qualquer tecla no seu teclado!</div>
+            <div class="key-info-category" id="info-cat" style="display:none;"></div>
+          </div>
+
+          <div id="kb-live" style="overflow-x:auto;">
+            ${buildKeyboard(false)}
+          </div>
+
+          <div style="text-align:center; margin-top:16px; padding:16px; background:var(--success-light); border-radius:var(--radius); border:1px solid var(--success);">
+            <div style="font-weight:700; color:var(--success-dark);">
+              ✅ Teclas pressionadas: <span id="press-count" style="font-size:20px;">0</span> / 5
+            </div>
+          </div>
+
+          <div id="typing-demo" style="margin-top:16px; padding:16px; background:white; border-radius:var(--radius); border:1px solid var(--border); min-height:60px; font-family:monospace; font-size:16px; color:var(--text-primary);">
+            <span style="color:var(--text-muted);">← O texto que você digitar aparece aqui...</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== PASSO 5: QUIZ =====
+    function renderStep5() {
+      kbListenerActive = false;
+      const questionIndex = Object.keys(quizAnswers).length;
+      if (questionIndex >= QUIZ_QUESTIONS.length) return renderQuizResult();
+      const q = QUIZ_QUESTIONS[questionIndex];
+      const letters = ['A','B','C','D'];
+      return `
+        <div class="module-section">
+          <div class="module-section-hero" style="background:linear-gradient(135deg,#F857A6,#FF5858);">
+            <div class="hero-badge">✅ Quiz — Passo 5 de 5</div>
+            <h2>Quiz do Teclado!</h2>
+            <p>Teste o que você aprendeu sobre as teclas.</p>
+          </div>
+          <div style="max-width:620px;margin:0 auto;">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar">
+                <div class="quiz-progress-fill" style="width:${(questionIndex/QUIZ_QUESTIONS.length)*100}%"></div>
+              </div>
+              <span style="font-size:14px;font-weight:700;color:var(--text-secondary);white-space:nowrap;">${questionIndex+1}/${QUIZ_QUESTIONS.length}</span>
+            </div>
+            <div class="card">
+              <div class="card-body" style="padding:28px;">
+                <div class="quiz-question">${q.question}</div>
+                <div class="quiz-options">
+                  ${q.options.map((opt,i)=>`
+                    <div class="quiz-option" id="option-${i}" onclick="answerQuiz(${questionIndex},${i})">
+                      <div class="quiz-letter">${letters[i]}</div>
+                      <span>${opt}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback">
+                  <span class="quiz-feedback-icon"></span>
+                  <div class="quiz-feedback-text"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuizResult() {
+      const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+      const stars = pct>=80?3:pct>=60?2:1;
+      return `
+        <div class="module-section" style="text-align:center;">
+          <div class="card" style="max-width:500px;margin:40px auto;padding:40px 32px;">
+            <div style="font-size:72px;margin-bottom:16px;">${pct>=80?'🏆':pct>=60?'🌟':'📚'}</div>
+            <h2>${pct>=80?'Excelente!':pct>=60?'Muito Bem!':'Continue Praticando!'}</h2>
+            <div style="font-size:48px;font-weight:900;font-family:var(--font-heading);color:var(--primary);margin:16px 0;">${pct}%</div>
+            <div style="color:var(--text-secondary);margin-bottom:20px;">Acertou ${quizScore} de ${QUIZ_QUESTIONS.length}</div>
+            <div class="stars-row">
+              ${Array.from({length:3},(_,i)=>`<span class="star-item" style="color:${i<stars?'#F59E0B':'#E2E8F0'}">${i<stars?'⭐':'☆'}</span>`).join('')}
+            </div>
+            <button class="btn btn-success btn-lg" style="margin-top:24px;" onclick="finishModule()">
+              🚀 Concluir Módulo! +50 XP
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== CONSTRUTOR DO TECLADO HTML =====
+    function buildKeyboard(clickable) {
+      const onclick = clickable ? 'onclick="showKeyInfo(this)"' : '';
+      const rows = [
+        // Linha de funções
+        `<div class="keyboard-row">
+          <div class="key key-fn key-w225" id="k-esc" data-code="Escape" ${onclick}>Esc</div>
+          <div style="width:20px"></div>
+          <div class="key key-fn key-w15" id="k-f1" data-code="F1" ${onclick}>F1</div>
+          <div class="key key-fn key-w15" id="k-f2" data-code="F2" ${onclick}>F2</div>
+          <div class="key key-fn key-w15" id="k-f3" data-code="F3" ${onclick}>F3</div>
+          <div class="key key-fn key-w15" id="k-f4" data-code="F4" ${onclick}>F4</div>
+          <div style="width:10px"></div>
+          <div class="key key-fn key-w15" id="k-f5" data-code="F5" ${onclick}>F5</div>
+          <div class="key key-fn key-w15" id="k-f6" data-code="F6" ${onclick}>F6</div>
+          <div class="key key-fn key-w15" id="k-f7" data-code="F7" ${onclick}>F7</div>
+          <div class="key key-fn key-w15" id="k-f8" data-code="F8" ${onclick}>F8</div>
+          <div style="width:10px"></div>
+          <div class="key key-fn key-w15" id="k-f9" data-code="F9" ${onclick}>F9</div>
+          <div class="key key-fn key-w15" id="k-f10" data-code="F10" ${onclick}>F10</div>
+          <div class="key key-fn key-w15" id="k-f11" data-code="F11" ${onclick}>F11</div>
+          <div class="key key-fn key-w15" id="k-f12" data-code="F12" ${onclick}>F12</div>
+        </div>`,
+        // Linha numérica
+        `<div class="keyboard-row">
+          <div class="key" id="k-bq" data-code="Backquote" ${onclick}><span class="key-top">~</span><span class="key-bot">\`</span></div>
+          <div class="key" id="k-1" data-code="Digit1" ${onclick}><span class="key-top">!</span><span class="key-bot">1</span></div>
+          <div class="key" id="k-2" data-code="Digit2" ${onclick}><span class="key-top">@</span><span class="key-bot">2</span></div>
+          <div class="key" id="k-3" data-code="Digit3" ${onclick}><span class="key-top">#</span><span class="key-bot">3</span></div>
+          <div class="key" id="k-4" data-code="Digit4" ${onclick}><span class="key-top">$</span><span class="key-bot">4</span></div>
+          <div class="key" id="k-5" data-code="Digit5" ${onclick}><span class="key-top">%</span><span class="key-bot">5</span></div>
+          <div class="key" id="k-6" data-code="Digit6" ${onclick}><span class="key-top">¨</span><span class="key-bot">6</span></div>
+          <div class="key" id="k-7" data-code="Digit7" ${onclick}><span class="key-top">&amp;</span><span class="key-bot">7</span></div>
+          <div class="key" id="k-8" data-code="Digit8" ${onclick}><span class="key-top">*</span><span class="key-bot">8</span></div>
+          <div class="key" id="k-9" data-code="Digit9" ${onclick}><span class="key-top">(</span><span class="key-bot">9</span></div>
+          <div class="key" id="k-0" data-code="Digit0" ${onclick}><span class="key-top">)</span><span class="key-bot">0</span></div>
+          <div class="key" id="k-minus" data-code="Minus" ${onclick}><span class="key-top">_</span><span class="key-bot">-</span></div>
+          <div class="key" id="k-equal" data-code="Equal" ${onclick}><span class="key-top">+</span><span class="key-bot">=</span></div>
+          <div class="key key-enter key-w225" id="k-bs" data-code="Backspace" ${onclick}>⌫ Back</div>
+        </div>`,
+        // Linha QWERTY
+        `<div class="keyboard-row">
+          <div class="key key-mod key-w15" id="k-tab" data-code="Tab" ${onclick}>Tab ⇥</div>
+          <div class="key" id="k-q" data-code="KeyQ" ${onclick}>Q</div>
+          <div class="key" id="k-w" data-code="KeyW" ${onclick}>W</div>
+          <div class="key" id="k-e" data-code="KeyE" ${onclick}>E</div>
+          <div class="key" id="k-r" data-code="KeyR" ${onclick}>R</div>
+          <div class="key" id="k-t" data-code="KeyT" ${onclick}>T</div>
+          <div class="key" id="k-y" data-code="KeyY" ${onclick}>Y</div>
+          <div class="key" id="k-u" data-code="KeyU" ${onclick}>U</div>
+          <div class="key" id="k-i" data-code="KeyI" ${onclick}>I</div>
+          <div class="key" id="k-o" data-code="KeyO" ${onclick}>O</div>
+          <div class="key" id="k-p" data-code="KeyP" ${onclick}>P</div>
+          <div class="key" id="k-br1" data-code="BracketLeft" ${onclick}><span class="key-top">{</span><span class="key-bot">[</span></div>
+          <div class="key" id="k-br2" data-code="BracketRight" ${onclick}><span class="key-top">}</span><span class="key-bot">]</span></div>
+          <div class="key key-mod" id="k-bsl" data-code="Backslash" ${onclick}><span class="key-top">|</span><span class="key-bot">\\</span></div>
+        </div>`,
+        // Linha ASDF
+        `<div class="keyboard-row">
+          <div class="key key-mod key-w2" id="k-caps" data-code="CapsLock" ${onclick}>⇪ Caps</div>
+          <div class="key" id="k-a" data-code="KeyA" ${onclick}>A</div>
+          <div class="key" id="k-s" data-code="KeyS" ${onclick}>S</div>
+          <div class="key" id="k-d" data-code="KeyD" ${onclick}>D</div>
+          <div class="key" id="k-f" data-code="KeyF" ${onclick}>F</div>
+          <div class="key" id="k-g" data-code="KeyG" ${onclick}>G</div>
+          <div class="key" id="k-h" data-code="KeyH" ${onclick}>H</div>
+          <div class="key" id="k-j" data-code="KeyJ" ${onclick}>J</div>
+          <div class="key" id="k-k" data-code="KeyK" ${onclick}>K</div>
+          <div class="key" id="k-l" data-code="KeyL" ${onclick}>L</div>
+          <div class="key" id="k-semi" data-code="Semicolon" ${onclick}><span class="key-top">:</span><span class="key-bot">;</span></div>
+          <div class="key" id="k-quot" data-code="Quote" ${onclick}><span class="key-top">"</span><span class="key-bot">'</span></div>
+          <div class="key key-enter key-w275" id="k-enter" data-code="Enter" ${onclick}>Enter ↵</div>
+        </div>`,
+        // Linha ZXCV
+        `<div class="keyboard-row">
+          <div class="key key-mod key-w275" id="k-shiftl" data-code="ShiftLeft" ${onclick}>⇧ Shift</div>
+          <div class="key" id="k-z" data-code="KeyZ" ${onclick}>Z</div>
+          <div class="key" id="k-x" data-code="KeyX" ${onclick}>X</div>
+          <div class="key" id="k-c" data-code="KeyC" ${onclick}>C</div>
+          <div class="key" id="k-v" data-code="KeyV" ${onclick}>V</div>
+          <div class="key" id="k-b" data-code="KeyB" ${onclick}>B</div>
+          <div class="key" id="k-n" data-code="KeyN" ${onclick}>N</div>
+          <div class="key" id="k-m" data-code="KeyM" ${onclick}>M</div>
+          <div class="key" id="k-comma" data-code="Comma" ${onclick}><span class="key-top">&lt;</span><span class="key-bot">,</span></div>
+          <div class="key" id="k-period" data-code="Period" ${onclick}><span class="key-top">&gt;</span><span class="key-bot">.</span></div>
+          <div class="key" id="k-slash" data-code="Slash" ${onclick}><span class="key-top">?</span><span class="key-bot">/</span></div>
+          <div class="key key-mod key-w3" id="k-shiftr" data-code="ShiftRight" ${onclick}>Shift ⇧</div>
+        </div>`,
+        // Linha inferior
+        `<div class="keyboard-row">
+          <div class="key key-mod key-w15" id="k-ctrll" data-code="ControlLeft" ${onclick}>Ctrl</div>
+          <div class="key key-mod key-w15" id="k-win" data-code="MetaLeft" ${onclick}>⊞</div>
+          <div class="key key-mod key-w15" id="k-altl" data-code="AltLeft" ${onclick}>Alt</div>
+          <div class="key key-space key-w6" id="k-space" data-code="Space" ${onclick}>Espaço</div>
+          <div class="key key-mod key-w2" id="k-altr" data-code="AltRight" ${onclick}>Alt Gr</div>
+          <div class="key key-mod key-w15" id="k-ctrlr" data-code="ControlRight" ${onclick}>Ctrl</div>
+          <div style="width:10px"></div>
+          <div class="key" id="k-left" data-code="ArrowLeft" ${onclick}>←</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div class="key" id="k-up" data-code="ArrowUp" style="height:18px;" ${onclick}>↑</div>
+            <div class="key" id="k-down" data-code="ArrowDown" style="height:18px;" ${onclick}>↓</div>
+          </div>
+          <div class="key" id="k-right" data-code="ArrowRight" ${onclick}>→</div>
+        </div>`,
+      ];
+      return `<div class="virtual-keyboard">${rows.join('')}</div>`;
+    }
+
+    // ===== MOSTRAR INFO DA TECLA (clique) =====
+    function showKeyInfo(el) {
+      const code = el.dataset.code;
+      const info = KEY_INFO[code];
+      const infoBox = document.getElementById('key-info');
+      if (!infoBox) return;
+      infoBox.innerHTML = info ? `
+        <div class="key-info-name">${info.name}</div>
+        <div class="key-info-category">${info.cat}</div>
+        <div class="key-info-function">${info.func}</div>
+      ` : `
+        <div class="key-info-name">${el.textContent.trim()}</div>
+        <div class="key-info-function">Tecla alfanumérica — usado para digitar texto.</div>
+      `;
+      App.playSound('click');
+      // Highlight temporário
+      document.querySelectorAll('.key.active').forEach(k => k.classList.remove('active'));
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 600);
+      
+      clickedKeys++;
+      if (clickedKeys >= 3 && !stepUnlocked) {
+        unlockNext();
+      }
+    }
+
+    // ===== LISTENER PARA TECLAS REAIS =====
+    let pressCount = 0;
+    let typedText = '';
+    function handleKeyDown(e) {
+      if (!kbListenerActive) return;
+      if (currentStep !== 3) return;
+
+      e.preventDefault();
+      const keyId = CODE_TO_KEY_ID[e.code];
+      if (keyId) {
+        const keyEl = document.getElementById(keyId);
+        if (keyEl) {
+          keyEl.classList.add('active');
+          setTimeout(() => keyEl.classList.remove('active'), 300);
+        }
+      }
+
+      // Atualiza info
+      const info = KEY_INFO[e.code];
+      const nameEl = document.getElementById('info-name');
+      const funcEl = document.getElementById('info-func');
+      const catEl  = document.getElementById('info-cat');
+      if (nameEl) nameEl.textContent = info ? info.name : (e.key.length === 1 ? `Tecla: ${e.key.toUpperCase()}` : e.code);
+      if (funcEl) funcEl.textContent = info ? info.func : 'Tecla alfanumérica — digita o caractere correspondente.';
+      if (catEl)  { catEl.textContent = info ? info.cat : 'Alfanumérico'; catEl.style.display='inline-block'; }
+
+      pressCount++;
+      const cntEl = document.getElementById('press-count');
+      if (cntEl) cntEl.textContent = pressCount;
+
+      // Typing demo
+      if (e.key.length === 1) {
+        typedText += e.key;
+      } else if (e.code === 'Backspace') {
+        typedText = typedText.slice(0, -1);
+      } else if (e.code === 'Space') {
+        typedText += ' ';
+      }
+      const demoEl = document.getElementById('typing-demo');
+      if (demoEl) demoEl.textContent = typedText || '';
+
+      App.playSound('click');
+      
+      if (pressCount >= 5 && !stepUnlocked) {
+        unlockNext();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+
+    // ===== QUIZ =====
+    function answerQuiz(qIdx, optIdx) {
+      const q = QUIZ_QUESTIONS[qIdx];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      const correct = optIdx === q.correct;
+      if (correct) quizScore++;
+      quizAnswers[qIdx] = { selected: optIdx, correct: q.correct };
+      document.getElementById(`option-${optIdx}`).classList.add(correct ? 'correct' : 'incorrect');
+      if (!correct) document.getElementById(`option-${q.correct}`).classList.add('correct');
+      const fb = document.getElementById('quiz-feedback');
+      fb.innerHTML = `
+        <span class="quiz-feedback-icon">${correct?'✅':'❌'}</span>
+        <div class="quiz-feedback-text">
+          <strong>${correct?'Correto! 🎉':'Quase lá!'}</strong>
+          <div style="margin-top:4px;">${!correct?`Resposta correta: <strong>${q.options[q.correct]}</strong>.<br>`:''}${q.explanation}</div>
+        </div>
+      `;
+      fb.className = `quiz-feedback show ${correct?'correct':'incorrect'}`;
+      App.playSound(correct?'correct':'incorrect');
+      setTimeout(renderCurrentStep, 2200);
+    }
+
+    function finishModule() {
+      const pct = Math.round((quizScore/QUIZ_QUESTIONS.length)*100);
+      App.saveQuizScore(MODULE_ID, pct);
+      App.completeModule(MODULE_ID, pct);
+      App.showModuleComplete(MODULE_ID, pct);
+    }
+
+    function unlockNext() {
+      stepUnlocked = true;
+      document.getElementById('btn-next').style.display = 'inline-flex';
+      App.playSound('correct');
+    }
+
+    // ===== NAVEGAÇÃO =====
+    function renderCurrentStep() {
+      const progress = App.getModuleProgress(MODULE_ID);
+      stepUnlocked = currentStep < (progress.currentStep || 0);
+
+      const content = document.getElementById('step-content');
+      content.innerHTML = STEPS[currentStep].render();
+      updateProgress();
+      if (currentStep === 3) { kbListenerActive = true; pressCount = 0; typedText = ''; }
+      else kbListenerActive = false;
+      if (currentStep === 1) { clickedKeys = 0; }
+    }
+
+    function updateProgress() {
+      let html = '';
+      STEPS.forEach((_,i) => {
+        html += `<div class="step-dot ${i<currentStep?'done':i===currentStep?'active':'pending'}"></div>`;
+        if (i<STEPS.length-1) html += `<div class="step-line ${i<currentStep?'done':''}"></div>`;
+      });
+      document.getElementById('step-progress').innerHTML = html;
+      document.getElementById('step-label').textContent = `Passo ${currentStep+1}/${STEPS.length}`;
+      document.getElementById('footer-step').textContent = `Passo ${currentStep+1} de ${STEPS.length}: ${STEPS[currentStep].title}`;
+      document.getElementById('btn-prev').style.display = currentStep>0?'inline-flex':'none';
+      
+      if (currentStep === STEPS.length - 1) {
+        document.getElementById('btn-next').style.display = 'none';
+      } else {
+        document.getElementById('btn-next').style.display = stepUnlocked ? 'inline-flex' : 'none';
+      }
+      
+      const state = App.loadState();
+      if (state) document.getElementById('nav-xp').textContent = state.totalXP||0;
+    }
+
+    function nextStep() {
+      if (currentStep < STEPS.length-1) {
+        if (currentStep < 3) App.completeStep(MODULE_ID, currentStep, 10);
+        currentStep++;
+        renderCurrentStep();
+        window.scrollTo({top:0,behavior:'smooth'});
+        App.playSound('click');
+      }
+    }
+    function prevStep() {
+      if (currentStep>0) { currentStep--; renderCurrentStep(); window.scrollTo({top:0,behavior:'smooth'}); }
+    }
+
+    // AJUDA
+    const HELPS = [
+      {title:'❓ Grupos de Teclas',body:'<p>O teclado tem 6 grupos principais: alfanumérico, funções (F1-F12), modificadoras (Ctrl/Alt/Shift), navegação (setas), numérico e edição (Enter/Backspace).</p>'},
+      {title:'❓ Teclado Visual',body:'<p>Clique em qualquer tecla colorida para ver o nome e a função dela explicados.</p>'},
+      {title:'❓ Teclas Importantes',body:'<p>Memorize as teclas modificadoras: <strong>Shift</strong> (maiúsculas), <strong>Ctrl</strong> (atalhos), <strong>Alt</strong> (mais atalhos), <strong>Windows</strong> (menu iniciar).</p>'},
+      {title:'❓ Simulador',body:'<p>Pressione as teclas do seu teclado REAL! O teclado virtual vai iluminar a tecla e explicar sua função. Tente as setas, Shift, Ctrl, Enter...</p>'},
+      {title:'❓ Quiz',body:'<p>Clique na resposta correta. Mesmo que erre, veja a explicação — é assim que o aprendizado acontece!</p>'},
+    ];
+    function showHelp() {
+      const h = HELPS[currentStep]||HELPS[0];
+      document.getElementById('help-title').innerHTML = h.title;
+      document.getElementById('help-body').innerHTML = h.body;
+      document.getElementById('help-modal').classList.add('active');
+    }
+    function closeHelp() { document.getElementById('help-modal').classList.remove('active'); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      App.requireStudent();
+      const progress = App.getModuleProgress(MODULE_ID);
+      currentStep = Math.min(progress.currentStep||0, STEPS.length-1);
+      if (progress.quizScore>0) { for(let i=0;i<QUIZ_QUESTIONS.length;i++) quizAnswers[i]=true; quizScore=Math.round((progress.quizScore/100)*QUIZ_QUESTIONS.length); }
+      renderCurrentStep();
+    });
+  </script>
+</body>
+</html>
